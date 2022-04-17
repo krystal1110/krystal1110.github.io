@@ -71,7 +71,7 @@
   <header>
     
 
-<div class="header-inner" style="height: 100vh;">
+<div class="header-inner" style="height: 40vh;">
   <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
   <div class="container">
     <a class="navbar-brand" href="/project/">
@@ -176,17 +176,13 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="JY Blogs"></span>
+            <span id="subtitle" data-typed-text="Try to work it out"></span>
           
         </div>
 
         
       </div>
 
-      
-        <div class="scroll-down-bar">
-          <i class="iconfont icon-arrowdown"></i>
-        </div>
       
     </div>
   </div>
@@ -200,7 +196,7 @@
     
       <div class="container nopadding-x-md">
         <div id="board"
-          style="margin-top: 0">
+          >
           
           <div class="container">
             <div class="row">
@@ -214,8 +210,62 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h1 class="index-header">
         
+        <a href="/project/2022/04/16/%E5%8A%A8%E6%80%81%E5%BA%93%E4%B8%8E%E9%9D%99%E6%80%81%E5%BA%93%E7%9A%84%E5%8C%BA%E5%88%AB/" target="_self">
+          iOS-动态库与静态库的区别
+        </a>
+      </h1>
+
+      <a class="index-excerpt" href="/project/2022/04/16/%E5%8A%A8%E6%80%81%E5%BA%93%E4%B8%8E%E9%9D%99%E6%80%81%E5%BA%93%E7%9A%84%E5%8C%BA%E5%88%AB/" target="_self">
+        <div>
+          
+          静态库 (Static Library) 分发文件大  静态库默认仅将有用到的类文件link到Mach-O中(已类文件为最小链接单位)  ipa包小(为了APP瘦身，尽量将代码放静态库中)   静态库中某个目标文件的代码没有被任何地方引用，则这个目标文件不会被链接到可执行文件中去(前提是不要使用-Objc和-all_load选项，分类代码经常被优化掉，一般都使用-force_load来处理静态库分
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2022-04-16 18:23" pubdate>
+              2022-04-16
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/project/categories/iOS/" class="category-chain-item">iOS</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
         <a href="/project/2022/04/16/%E6%B5%8B%E8%AF%95%E6%96%87%E7%AB%A0/" target="_self">
-          测试文章
+          总结
         </a>
       </h1>
 
@@ -232,39 +282,6 @@
             <i class="iconfont icon-date"></i>
             <time datetime="2022-04-16 18:23" pubdate>
               2022-04-16
-            </time>
-          </div>
-        
-        
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/project/2022/03/17/%E5%8A%A8%E6%80%81%E5%BA%93%E4%B8%8E%E9%9D%99%E6%80%81%E5%BA%93%E7%9A%84%E5%8C%BA%E5%88%AB/" target="_self">
-          
-        </a>
-      </h1>
-
-      <a class="index-excerpt" href="/project/2022/03/17/%E5%8A%A8%E6%80%81%E5%BA%93%E4%B8%8E%E9%9D%99%E6%80%81%E5%BA%93%E7%9A%84%E5%8C%BA%E5%88%AB/" target="_self">
-        <div>
-          
-          静态库 (Static Library) 分发文件大  静态库默认仅将有用到的类文件link到Mach-O中(已类文件为最小链接单位)  ipa包小(为了APP瘦身，尽量将代码放静态库中)   静态库中某个目标文件的代码没有被任何地方引用，则这个目标文件不会被链接到可执行文件中去(前提是不要使用-Objc和-all_load选项，分类代码经常被优化掉，一般都使用-force_load来处理静态库分
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2022-03-17 15:46" pubdate>
-              2022-03-17
             </time>
           </div>
         
