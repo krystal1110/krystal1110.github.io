@@ -16,20 +16,20 @@
   <meta name="author" content="JY">
   <meta name="keywords" content="">
   
-    <meta name="description" content="静态库 (Static Library) 分发文件大  静态库默认仅将有用到的类文件link到Mach-O中(已类文件为最小链接单位)  ipa包小(为了APP瘦身，尽量将代码放静态库中)   静态库中某个目标文件的代码没有被任何地方引用，则这个目标文件不会被链接到可执行文件中去(前提是不要使用-Objc和-all_load选项，分类代码经常被优化掉，一般都使用-force_load来处理静态库分">
+    <meta name="description" content="iOS夜间模式的适配，主要用到了NSProxy转发原理 ，其中JYDynamicColor继承于UIColor 1234567891011@interface JYDynamicColor : UIColor@property (nonatomic, readonly) UIColor * lightColor;@property (nonatomic, readonly) UIColor * d">
 <meta property="og:type" content="article">
-<meta property="og:title" content="iOS-动态库与静态库的区别">
-<meta property="og:url" content="https://krystal1110.github.io/2021/02/16/%E5%8A%A8%E6%80%81%E5%BA%93%E4%B8%8E%E9%9D%99%E6%80%81%E5%BA%93%E7%9A%84%E5%8C%BA%E5%88%AB/index.html">
+<meta property="og:title" content="iOS-夜间模式框架">
+<meta property="og:url" content="https://krystal1110.github.io/2021/05/01/%E5%A4%9C%E9%97%B4%E6%A8%A1%E5%BC%8F%E6%A1%86%E6%9E%B6/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="静态库 (Static Library) 分发文件大  静态库默认仅将有用到的类文件link到Mach-O中(已类文件为最小链接单位)  ipa包小(为了APP瘦身，尽量将代码放静态库中)   静态库中某个目标文件的代码没有被任何地方引用，则这个目标文件不会被链接到可执行文件中去(前提是不要使用-Objc和-all_load选项，分类代码经常被优化掉，一般都使用-force_load来处理静态库分">
+<meta property="og:description" content="iOS夜间模式的适配，主要用到了NSProxy转发原理 ，其中JYDynamicColor继承于UIColor 1234567891011@interface JYDynamicColor : UIColor@property (nonatomic, readonly) UIColor * lightColor;@property (nonatomic, readonly) UIColor * d">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2021-02-16T10:23:03.000Z">
-<meta property="article:modified_time" content="2021-02-16T10:23:03.000Z">
+<meta property="article:published_time" content="2021-05-01T10:23:03.000Z">
+<meta property="article:modified_time" content="2021-05-01T10:23:03.000Z">
 <meta property="article:author" content="JY">
 <meta name="twitter:card" content="summary_large_image">
   
   
-  <title>iOS-动态库与静态库的区别 - Hexo</title>
+  <title>iOS-夜间模式框架 - Hexo</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -186,7 +186,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="iOS-动态库与静态库的区别"></span>
+            <span id="subtitle" data-typed-text="iOS-夜间模式框架"></span>
           
         </div>
 
@@ -197,8 +197,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2021-02-16 18:23" pubdate>
-          2021年2月16日 晚上
+        <time datetime="2021-05-01 18:23" pubdate>
+          2021年5月1日 晚上
         </time>
       </span>
     
@@ -209,7 +209,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          1.3k 字
+          4.5k 字
         
       </span>
     
@@ -220,7 +220,7 @@
         
         
         
-          11 分钟
+          38 分钟
         
       </span>
     
@@ -266,97 +266,34 @@
         <div id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">iOS-动态库与静态库的区别</h1>
+            <h1 style="display: none">iOS-夜间模式框架</h1>
             
             <div class="markdown-body">
               
-              <h3 id="静态库-Static-Library"><a href="#静态库-Static-Library" class="headerlink" title="静态库 (Static Library)"></a>静态库 (Static Library)</h3><ul>
-<li><p>分发文件大</p>
-</li>
-<li><p>静态库默认仅将有用到的类文件<code>link</code>到<code>Mach-O</code>中(已类文件为最小链接单位)</p>
-</li>
-<li><p>ipa包小(为了APP瘦身，尽量将代码放静态库中) </p>
-<ul>
-<li>静态库中某个目标文件的代码没有被任何地方引用，则这个目标文件不会被链接到可执行文件中去(前提是不要使用<code>-Objc</code>和<code>-all_load</code>选项，分类代码经常被优化掉，一般都使用<code>-force_load</code>来处理静态库分类加载问题)</li>
-</ul>
-</li>
-<li><p>APP冷启动速度快</p>
-<ul>
-<li>前提是不使用<code>动态库拆分</code>搭配<code>动态库懒加载方案</code></li>
-<li>APP启动流程中有<code>rebase</code>和<code>bind</code>，多个静态库只需要<code>rebase</code>和<code>bind</code>一次</li>
-</ul>
-</li>
-<li><p>存在符号冲突可能</p>
-</li>
-<li><p>共享<code>TEXT段</code></p>
-<ul>
-<li>iOS9以前单个Mach-O的TEXT限制60M</li>
-<li>iOS9以后单个Mach-O的TEXT限制500M</li>
-</ul>
-</li>
-<li><p>不需要额外签名验证  </p>
-</li>
-<li><p>静态库符号的可见性可以在链接期间被修改 </p>
-</li>
-<li><p>文件格式多为<code>fat</code>格式的静态库文件</p>
-</li>
-<li><p>形式多为<code>.a</code>与<code>.framework</code></p>
-</li>
-<li><p>静态库不含<code>bitcode</code>时，引用静态库的目标部署时就不能包含<code>bitcode</code></p>
-</li>
-</ul>
-<h3 id="动态库-Dynamic-Library"><a href="#动态库-Dynamic-Library" class="headerlink" title="动态库 (Dynamic Library)"></a>动态库 (Dynamic Library)</h3><ul>
-<li><p>分发文件小</p>
-</li>
-<li><p>ipa包大  （前提是不考虑懒加载的情况）</p>
-<ul>
-<li>动态库会把整个<code>lib</code>复制进<code>ipa</code>中</li>
-</ul>
-</li>
-<li><p>APP冷启动速度慢</p>
-<ul>
-<li>APP启动流程中有<code>rebase</code>和<code>bind</code>，多个动态库只需要多次<code>rebase</code>和<code>bind</code></li>
-</ul>
-</li>
-<li><p>需要设置合适的<code>runpath</code> </p>
-</li>
-<li><p>需要动态加载</p>
-</li>
-<li><p>需要签名且需要验证签名</p>
-<ul>
-<li>会检查<code>framework</code>的签名，签名中必须包含<code>TeamIdentifier</code>,并且<code>framework</code>和host APP的<code>TeamIdentifier</code>必须一致</li>
-<li>Xcode重签命，保证动态库签名一致性</li>
-</ul>
-</li>
-<li><p>需要导出符号</p>
-</li>
-<li><p>重复的<code>arch</code>结构</p>
-</li>
-<li><p>APP与动态库中重复代码可以共存，不会发生符号冲突</p>
-<ul>
-<li>因为可执行文件在构建链接阶段，遇到静态库则吸附进来，遇到动态库则打个标记，彼此保持独立性</li>
-<li>对于来自动态库的符号，编译器会打个标记，交给<code>dyld</code>去加载和链接符号，也就是把链接的过程推迟到了运行时执行。（比如APP使用的是3.0版本SDK，动态库使用的是1.0版本SDK，能正常运行，但是会有风险）</li>
-</ul>
-</li>
-<li><p>链接后需要包含分发大小</p>
-</li>
-<li><p>冷启动过程中，默认会在<code>main</code>函数之前加载</p>
-<ul>
-<li>默认情况下，过多的动态库会拖慢冷启动速度</li>
-<li>如果采用懒加载动态库的形式，能够加快APP的启动速度,可以使用<code>dlopen</code>和<code>bundle</code>懒加载优化</li>
-</ul>
-</li>
-<li><p>文件格式<code>Mach-O</code>（一个没有<code>main</code>函数的可执行文件）</p>
-</li>
-<li><p>动态库不包含<code>bitcode</code>时，引用动态库的目标部署时可以包含<code>bitcode</code></p>
-</li>
-<li><p><code>CocoaPods</code>从<code>v0.36.0</code>开始，可添加关键字<code>use_frameworks!</code>编译成类似<code>Embedded Framework</code>的结构（可以称之为<code>umbrella framework</code>）</p>
-<ul>
-<li>缺点：默认把项目的依赖全部改为动态库（可是使用<code>use_modular_headers!</code>,也可以在<code>podsepc</code>添加<code>s.static_framework = true</code>规避）</li>
-<li><code>CocoaPods</code>执行脚本把动态库嵌入到<code>.app</code>的<code>Framework</code>目录下（相当于在<code>Embedded Binaries</code>加入动态库）</li>
-</ul>
-</li>
-</ul>
+              <p>iOS夜间模式的适配，主要用到了<code>NSProxy</code>转发原理 ，其中JYDynamicColor继承于UIColor</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs objective-c">@interface JYDynamicColor : UIColor<br><br>@property (nonatomic, readonly) UIColor * lightColor;<br><br>@property (nonatomic, readonly) UIColor * darkColor;<br><br>+ (UIColor *)colorWithLightColor:(UIColor *)lightColor darkColor:(UIColor *)darkColor;<br><br>+ (UIColor *)colorWithDynamicProvider:(UIColor * (^)(JYTraitCollection *traitCollection))dynamicProvider;<br><br>@end<br></code></pre></td></tr></table></figure>
+
+<p>  但是在.m文件中,我们实际将消息给了JYDynamicColorProxy处理</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs objective-c">@implementation JYDynamicColor<br><br>+ (UIColor *)colorWithLightColor:(UIColor *)lightColor darkColor:(UIColor *)darkColor &#123;<br>  return [self colorWithDynamicProvider:^(JYTraitCollection *traitCollection)&#123;<br>    return traitCollection.userInterfaceStyle == JYInterfaceStyleDark ? darkColor : lightColor;<br>  &#125;];<br>&#125;<br><br>+ (UIColor *)colorWithDynamicProvider:(UIColor * _Nonnull (^)(JYTraitCollection * _Nonnull))dynamicProvider &#123;<br>    <br>    return (JYDynamicColor *)[[JYDynamicColorProxy alloc] initWithDynamicProvider:dynamicProvider];<br>&#125;<br><br>- (UIColor *)lightColor &#123;<br>  NSAssert(NO, @&quot;This should never be called&quot;);<br>  return nil;<br>&#125;<br><br>- (UIColor *)darkColor &#123;<br>  NSAssert(NO, @&quot;This should never be called&quot;);<br>   return nil;<br>&#125;<br><br>@end<br></code></pre></td></tr></table></figure>
+
+<p>接着看到<code>JYDynamicColorProxy</code>是继承于<code>NSProxy</code>，将所有的事件都转发到了<code>resolvedColor</code>，而<code>resolvedColor</code>是根据当前模式返回 <code>lightColor</code> 或者 <code>darkColor</code>,这样就实现了，对外其实是一个<code>UIColor</code>，但是实际上是一个<code>JYDynamicColorProxy</code></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br></pre></td><td class="code"><pre><code class="hljs objective-c">@interface JYDynamicColorProxy : NSProxy &lt;NSCopying&gt;<br><br>@property (nonatomic, readonly) UIColor * resolvedColor;<br><br>@property (nonatomic, strong) UIColor *(^dynamicProvider)(JYTraitCollection *);<br><br>@end<br><br><br>@implementation JYDynamicColorProxy<br><br>- (instancetype)initWithDynamicProvider:(UIColor * (^)(JYTraitCollection *traitCollection))dynamicProvider &#123;<br>  self.dynamicProvider = dynamicProvider;<br>  return self;<br>&#125;<br><br>// MARK: NSProxy - 转发消息 将消息全部转发到 resolvedColor<br>- (NSMethodSignature *)methodSignatureForSelector:(SEL)sel &#123;<br>  return [self.resolvedColor methodSignatureForSelector:sel];<br>&#125;<br><br>- (void)forwardInvocation:(NSInvocation *)invocation &#123;<br>  [invocation invokeWithTarget:self.resolvedColor];<br>&#125;<br><br>- (UIColor *)resolvedColor &#123;<br>  return [self resolvedColorWithTraitCollection:JYTraitCollection.overrideTraitCollection];<br>&#125;<br><br>- (UIColor *)resolvedColorWithTraitCollection:(JYTraitCollection *)traitCollection &#123;<br>    return self.dynamicProvider(traitCollection);<br>&#125;<br><br>// MARK: UIColor<br>- (UIColor *)colorWithAlphaComponent:(CGFloat)alpha &#123;<br>  return [JYDynamicColor colorWithDynamicProvider:^UIColor *(JYTraitCollection *traitCollection) &#123;<br>    return [self.dynamicProvider(traitCollection) colorWithAlphaComponent:alpha];<br>  &#125;];<br>&#125;<br><br>- (CGColorRef)CGColor &#123;<br>  return [[self resolvedColor] CGColor];<br>&#125;<br><br><br>// MARK: NSObject<br>- (BOOL)isKindOfClass:(Class)aClass &#123;<br>  static JYDynamicColor *dynamicColor = nil;<br>  static dispatch_once_t onceToken;<br>  dispatch_once(&amp;onceToken, ^&#123;<br>    dynamicColor = [[JYDynamicColor alloc] init];<br>  &#125;);<br>  return [dynamicColor isKindOfClass:aClass];<br>&#125;<br><br>// MARK: NSCopying<br>- (id)copy &#123;<br>  return [self copyWithZone:nil];<br>&#125;<br><br>- (id)copyWithZone:(NSZone *)zone &#123;<br>  return [[JYDynamicColorProxy alloc] initWithDynamicProvider:[self.dynamicProvider copy]];<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p> iOS13以下，如果需要切换颜色，该如何刷新？<code>JYDynamicColorProxy</code>是如何存储颜色的呢？</p>
+</blockquote>
+<p>我们<code>swizzle</code>将设置颜色方法进行了hook，例如<code>@selector(setBackgroundColor:);</code>方法，将<code>backgroundColor</code>为<code>JYDynamicColor</code>的都进行处理</p>
+<p>这里采用了关联对象的思想，写了一个<code>UIView</code>的分类,将<code>JYDynamicColorProxy</code>进行存储，</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs objective-c">...<br>@property (nullable, readonly) JYDynamicColor *jy_dynamicBackgroundColor;<br>...<br><br>- (JYDynamicColor *)jy_dynamicBackgroundColor &#123;<br>    return objc_getAssociatedObject(self, @selector(jy_dynamicBackgroundColor));<br>&#125;<br><br>- (void)setJy_dynamicBackgroundColor:(JYDynamicColor *)jy_dynamicBackgroundColor &#123;<br>  objc_setAssociatedObject(self,<br>                           @selector(jy_dynamicBackgroundColor),<br>                           jy_dynamicBackgroundColor,<br>                           OBJC_ASSOCIATION_COPY_NONATOMIC);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>当修改当前模式的时候，我们将初始化拿到的<code>UIApplication</code>进行遍历，拿到<code>UIView</code>,然后调用分类当中的修改颜色方法</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs objective-c">- (void)jyTraitCollectionDidChange:(JYTraitCollection *)previousTraitCollection &#123;<br>  if (@available(iOS 13.0, *)) &#123;<br>    return;<br>  &#125;<br>    [self.subviews enumerateObjectsUsingBlock:^(__kindof UIView * _Nonnull view, NSUInteger idx, BOOL * _Nonnull stop) &#123;<br>        [view jyTraitCollectionDidChange:previousTraitCollection];<br>     &#125;];<br>     <br>    [self setNeedsLayout];<br>    [self setNeedsDisplay];<br>#if __IPHONE_OS_VERSION_MIN_REQUIRED &lt; __IPHONE_13_0<br>    [self jy_updateDynamicColors];<br>#endif<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs objective-c">- (void)jy_updateDynamicColors&#123;<br>    JYDynamicColor * backgroundColor = [self jy_dynamicBackgroundColor];<br>    if (backgroundColor) &#123;<br>        [self setBackgroundColor:backgroundColor];<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>通过关联对象取到对应模式的Color,然后赋值即可，图片也是一样的原理</p>
 
               
             </div>
@@ -374,7 +311,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/iOS/" class="category-chain-item">iOS</a>
+  <a href="/categories/iOS%E6%BA%90%E7%A0%81/" class="category-chain-item">iOS源码</a>
   
   
 
@@ -394,8 +331,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>iOS-动态库与静态库的区别</div>
-      <div>https://krystal1110.github.io/2021/02/16/动态库与静态库的区别/</div>
+      <div>iOS-夜间模式框架</div>
+      <div>https://krystal1110.github.io/2021/05/01/夜间模式框架/</div>
     </div>
     <div class="license-meta">
       
@@ -407,7 +344,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2021年2月16日</div>
+          <div>2021年5月1日</div>
         </div>
       
       
@@ -437,9 +374,9 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2021/05/01/%E5%A4%9C%E9%97%B4%E6%A8%A1%E5%BC%8F%E6%A1%86%E6%9E%B6/" title="iOS-夜间模式框架">
+                      <a href="/2021/08/02/iOS-%E7%BC%96%E8%AF%91%E8%BF%87%E7%A8%8B%E6%A2%B3%E7%90%86/" title="iOS-编译过程梳理">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">iOS-夜间模式框架</span>
+                        <span class="hidden-mobile">iOS-编译过程梳理</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -447,8 +384,8 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2020/04/16/iOS%E4%B9%8B%E5%90%8C%E6%AD%A5%E6%96%B9%E6%A1%88%EF%BC%88%E9%94%81%EF%BC%89/" title="iOS-同步方案（锁）">
-                        <span class="hidden-mobile">iOS-同步方案（锁）</span>
+                      <a href="/2021/02/16/%E5%8A%A8%E6%80%81%E5%BA%93%E4%B8%8E%E9%9D%99%E6%80%81%E5%BA%93%E7%9A%84%E5%8C%BA%E5%88%AB/" title="iOS-动态库与静态库的区别">
+                        <span class="hidden-mobile">iOS-动态库与静态库的区别</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

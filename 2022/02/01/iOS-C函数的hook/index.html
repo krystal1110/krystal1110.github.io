@@ -16,20 +16,22 @@
   <meta name="author" content="JY">
   <meta name="keywords" content="">
   
-    <meta name="description" content="静态库 (Static Library) 分发文件大  静态库默认仅将有用到的类文件link到Mach-O中(已类文件为最小链接单位)  ipa包小(为了APP瘦身，尽量将代码放静态库中)   静态库中某个目标文件的代码没有被任何地方引用，则这个目标文件不会被链接到可执行文件中去(前提是不要使用-Objc和-all_load选项，分类代码经常被优化掉，一般都使用-force_load来处理静态库分">
+    <meta name="description" content="fishhook方案通过解析bind、lazy_bind、weak_bind可以获取到元组列表，每个元组会告诉我们符号和指针信息，指针信息包括指针位于哪个段以及在段的偏移 在iOS中，我们使用用变量或类似NSLog()等外部函数并不是直接调用地址，而是在经过bind 或 lazy_bind后才能得到真正的地址。bind或lazy_bind后真正的函数地址记录在 nl_symbol_ptr 或 la">
 <meta property="og:type" content="article">
-<meta property="og:title" content="iOS-动态库与静态库的区别">
-<meta property="og:url" content="https://krystal1110.github.io/2021/02/16/%E5%8A%A8%E6%80%81%E5%BA%93%E4%B8%8E%E9%9D%99%E6%80%81%E5%BA%93%E7%9A%84%E5%8C%BA%E5%88%AB/index.html">
+<meta property="og:title" content="iOS-系统C函数的hook">
+<meta property="og:url" content="https://krystal1110.github.io/2022/02/01/iOS-C%E5%87%BD%E6%95%B0%E7%9A%84hook/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="静态库 (Static Library) 分发文件大  静态库默认仅将有用到的类文件link到Mach-O中(已类文件为最小链接单位)  ipa包小(为了APP瘦身，尽量将代码放静态库中)   静态库中某个目标文件的代码没有被任何地方引用，则这个目标文件不会被链接到可执行文件中去(前提是不要使用-Objc和-all_load选项，分类代码经常被优化掉，一般都使用-force_load来处理静态库分">
+<meta property="og:description" content="fishhook方案通过解析bind、lazy_bind、weak_bind可以获取到元组列表，每个元组会告诉我们符号和指针信息，指针信息包括指针位于哪个段以及在段的偏移 在iOS中，我们使用用变量或类似NSLog()等外部函数并不是直接调用地址，而是在经过bind 或 lazy_bind后才能得到真正的地址。bind或lazy_bind后真正的函数地址记录在 nl_symbol_ptr 或 la">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2021-02-16T10:23:03.000Z">
-<meta property="article:modified_time" content="2021-02-16T10:23:03.000Z">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/e6c9d24egy1h1dv8sqwtvj20xc0fjmyr.jpg">
+<meta property="article:published_time" content="2022-02-01T10:23:03.000Z">
+<meta property="article:modified_time" content="2022-02-01T10:23:03.000Z">
 <meta property="article:author" content="JY">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/e6c9d24egy1h1dv8sqwtvj20xc0fjmyr.jpg">
   
   
-  <title>iOS-动态库与静态库的区别 - Hexo</title>
+  <title>iOS-系统C函数的hook - Hexo</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -186,7 +188,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="iOS-动态库与静态库的区别"></span>
+            <span id="subtitle" data-typed-text="iOS-系统C函数的hook"></span>
           
         </div>
 
@@ -197,8 +199,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2021-02-16 18:23" pubdate>
-          2021年2月16日 晚上
+        <time datetime="2022-02-01 18:23" pubdate>
+          2022年2月1日 晚上
         </time>
       </span>
     
@@ -209,7 +211,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          1.3k 字
+          1.2k 字
         
       </span>
     
@@ -220,7 +222,7 @@
         
         
         
-          11 分钟
+          10 分钟
         
       </span>
     
@@ -266,97 +268,25 @@
         <div id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">iOS-动态库与静态库的区别</h1>
+            <h1 style="display: none">iOS-系统C函数的hook</h1>
             
             <div class="markdown-body">
               
-              <h3 id="静态库-Static-Library"><a href="#静态库-Static-Library" class="headerlink" title="静态库 (Static Library)"></a>静态库 (Static Library)</h3><ul>
-<li><p>分发文件大</p>
-</li>
-<li><p>静态库默认仅将有用到的类文件<code>link</code>到<code>Mach-O</code>中(已类文件为最小链接单位)</p>
-</li>
-<li><p>ipa包小(为了APP瘦身，尽量将代码放静态库中) </p>
-<ul>
-<li>静态库中某个目标文件的代码没有被任何地方引用，则这个目标文件不会被链接到可执行文件中去(前提是不要使用<code>-Objc</code>和<code>-all_load</code>选项，分类代码经常被优化掉，一般都使用<code>-force_load</code>来处理静态库分类加载问题)</li>
-</ul>
-</li>
-<li><p>APP冷启动速度快</p>
-<ul>
-<li>前提是不使用<code>动态库拆分</code>搭配<code>动态库懒加载方案</code></li>
-<li>APP启动流程中有<code>rebase</code>和<code>bind</code>，多个静态库只需要<code>rebase</code>和<code>bind</code>一次</li>
-</ul>
-</li>
-<li><p>存在符号冲突可能</p>
-</li>
-<li><p>共享<code>TEXT段</code></p>
-<ul>
-<li>iOS9以前单个Mach-O的TEXT限制60M</li>
-<li>iOS9以后单个Mach-O的TEXT限制500M</li>
-</ul>
-</li>
-<li><p>不需要额外签名验证  </p>
-</li>
-<li><p>静态库符号的可见性可以在链接期间被修改 </p>
-</li>
-<li><p>文件格式多为<code>fat</code>格式的静态库文件</p>
-</li>
-<li><p>形式多为<code>.a</code>与<code>.framework</code></p>
-</li>
-<li><p>静态库不含<code>bitcode</code>时，引用静态库的目标部署时就不能包含<code>bitcode</code></p>
-</li>
-</ul>
-<h3 id="动态库-Dynamic-Library"><a href="#动态库-Dynamic-Library" class="headerlink" title="动态库 (Dynamic Library)"></a>动态库 (Dynamic Library)</h3><ul>
-<li><p>分发文件小</p>
-</li>
-<li><p>ipa包大  （前提是不考虑懒加载的情况）</p>
-<ul>
-<li>动态库会把整个<code>lib</code>复制进<code>ipa</code>中</li>
-</ul>
-</li>
-<li><p>APP冷启动速度慢</p>
-<ul>
-<li>APP启动流程中有<code>rebase</code>和<code>bind</code>，多个动态库只需要多次<code>rebase</code>和<code>bind</code></li>
-</ul>
-</li>
-<li><p>需要设置合适的<code>runpath</code> </p>
-</li>
-<li><p>需要动态加载</p>
-</li>
-<li><p>需要签名且需要验证签名</p>
-<ul>
-<li>会检查<code>framework</code>的签名，签名中必须包含<code>TeamIdentifier</code>,并且<code>framework</code>和host APP的<code>TeamIdentifier</code>必须一致</li>
-<li>Xcode重签命，保证动态库签名一致性</li>
-</ul>
-</li>
-<li><p>需要导出符号</p>
-</li>
-<li><p>重复的<code>arch</code>结构</p>
-</li>
-<li><p>APP与动态库中重复代码可以共存，不会发生符号冲突</p>
-<ul>
-<li>因为可执行文件在构建链接阶段，遇到静态库则吸附进来，遇到动态库则打个标记，彼此保持独立性</li>
-<li>对于来自动态库的符号，编译器会打个标记，交给<code>dyld</code>去加载和链接符号，也就是把链接的过程推迟到了运行时执行。（比如APP使用的是3.0版本SDK，动态库使用的是1.0版本SDK，能正常运行，但是会有风险）</li>
-</ul>
-</li>
-<li><p>链接后需要包含分发大小</p>
-</li>
-<li><p>冷启动过程中，默认会在<code>main</code>函数之前加载</p>
-<ul>
-<li>默认情况下，过多的动态库会拖慢冷启动速度</li>
-<li>如果采用懒加载动态库的形式，能够加快APP的启动速度,可以使用<code>dlopen</code>和<code>bundle</code>懒加载优化</li>
-</ul>
-</li>
-<li><p>文件格式<code>Mach-O</code>（一个没有<code>main</code>函数的可执行文件）</p>
-</li>
-<li><p>动态库不包含<code>bitcode</code>时，引用动态库的目标部署时可以包含<code>bitcode</code></p>
-</li>
-<li><p><code>CocoaPods</code>从<code>v0.36.0</code>开始，可添加关键字<code>use_frameworks!</code>编译成类似<code>Embedded Framework</code>的结构（可以称之为<code>umbrella framework</code>）</p>
-<ul>
-<li>缺点：默认把项目的依赖全部改为动态库（可是使用<code>use_modular_headers!</code>,也可以在<code>podsepc</code>添加<code>s.static_framework = true</code>规避）</li>
-<li><code>CocoaPods</code>执行脚本把动态库嵌入到<code>.app</code>的<code>Framework</code>目录下（相当于在<code>Embedded Binaries</code>加入动态库）</li>
-</ul>
-</li>
-</ul>
+              <h3 id="fishhook方案"><a href="#fishhook方案" class="headerlink" title="fishhook方案"></a>fishhook方案</h3><p>通过解析<code>bind</code>、<code>lazy_bind</code>、<code>weak_bind</code>可以获取到元组列表，每个元组会告诉我们符号和指针信息，指针信息包括指针位于哪个段以及在段的偏移</p>
+<p>在iOS中，我们使用用变量或类似<code>NSLog()</code>等外部函数并不是直接调用地址，而是在经过bind 或 lazy_bind后才能得到真正的地址。bind或lazy_bind后真正的函数地址记录在 <code>nl_symbol_ptr</code> 或 <code>la_symbol_ptr</code>中，通过符号表可以找到每个函数对应在<code>nl_symbol_ptr</code>或<code>la_symbol_ptr</code>中的地址。fishhook 就是通过查找符号表，找到记录函数指针的地址修改函数指针从而实现C函数的hook。</p>
+<p>bind是在加载镜像的时候就就已经绑定，而lazy_bind是在首次使用时才触发绑定。</p>
+<blockquote>
+<p> lazy_bind是如何实现在首次调用函数时进行bind的呢？</p>
+</blockquote>
+<p>假设张三和李四是同学，老师手里有个名单，这个名单上记录着要参加值日的同学。本来今天应该是李四值日，但是由于打印名单时教务处老师不知道李四的名字，因此打印了班长张三的名字。老师只认名单，因此老师找来张三打扫卫生。但是张三只做了一件事情，就是把名单上的名字改成了李四，并且叫李四来打扫卫生。这样老师以后如果再吩咐打扫卫生的事情时就直接找到了李四。这就是lazy_bind。故事中老师就是我们写的代码，代码只认地址。名单就是<code>la_symbol_ptr</code>，上面记录了值日同学名。张三就是stub机制，它只是起到了辅助作用。而李四则是真正的外部函数，需要真正执行的函数。</p>
+<h3 id="动态库C函数hook"><a href="#动态库C函数hook" class="headerlink" title="动态库C函数hook"></a>动态库C函数hook</h3><p>除了<code>fishhook</code>外，笔者也有一种C函数的静态hook方式，相比于<code>fishhook</code>，此方案不存在耗时的查找比对操作。下面我将介绍这种比较特殊的方案：基于动态库的C函数hook </p>
+<p><img src="https://tva1.sinaimg.cn/large/e6c9d24egy1h1dv8sqwtvj20xc0fjmyr.jpg" srcset="/img/loading.gif" lazyload></p>
+<p><strong>Step1</strong>: 首先在主工程中定义一个同名同参同返回的函数，这样在<code>ld64</code>链接时会认为<code>func1</code>和<code>func2</code> 中用到的<code>NSLog</code>是我们自定义的函数，这样就不会跟系统库的函数进行匹配，<code>NSLog</code>也就不会被标记为需要<code>bind</code>的函数。</p>
+<p><strong>Step2</strong>: 在我们自定义的<code>NSLog</code>内部，我们调用自定义动态库的中间函数<code>MyNSLog</code>，这一步是为了能够调用到真正的<code>NSLog</code></p>
+<p><strong>Step3</strong>: 由于动态库中我们没有自定义<code>NSLog</code>去“欺骗”ld64，因此动态中的<code>NSLog</code>会去调用真正的系统函数。</p>
+<p>到这里可能有同学会问，“难道动态库的<code>NSLog</code>不存在重新调用到主程序的<code>NSLog</code>函数的风险吗？那样岂不是会死循环？”</p>
+<p>不会的。因为动态库是具备编译和链接过程的产物。经过链接时，在二进制文件中就已经写定了<code>NSLog</code>  <code>bind</code>到系统库中的<code>NSLog</code>了，因此在启动阶段<code>dyld</code>不会“违抗”二进制的命令执行到主程序的<code>NSLog</code>。</p>
+<p>但是由于侵入性较强，仅对部分需要<strong>同步启动</strong>用到的函数使用。<code>fishhook</code> 还是项目中最主要的使用方式。</p>
 
               
             </div>
@@ -374,7 +304,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/iOS/" class="category-chain-item">iOS</a>
+  <a href="/categories/iOS%E8%BF%9B%E9%98%B6/" class="category-chain-item">iOS进阶</a>
   
   
 
@@ -394,8 +324,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>iOS-动态库与静态库的区别</div>
-      <div>https://krystal1110.github.io/2021/02/16/动态库与静态库的区别/</div>
+      <div>iOS-系统C函数的hook</div>
+      <div>https://krystal1110.github.io/2022/02/01/iOS-C函数的hook/</div>
     </div>
     <div class="license-meta">
       
@@ -407,7 +337,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2021年2月16日</div>
+          <div>2022年2月1日</div>
         </div>
       
       
@@ -437,18 +367,12 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2021/05/01/%E5%A4%9C%E9%97%B4%E6%A8%A1%E5%BC%8F%E6%A1%86%E6%9E%B6/" title="iOS-夜间模式框架">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">iOS-夜间模式框架</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2020/04/16/iOS%E4%B9%8B%E5%90%8C%E6%AD%A5%E6%96%B9%E6%A1%88%EF%BC%88%E9%94%81%EF%BC%89/" title="iOS-同步方案（锁）">
-                        <span class="hidden-mobile">iOS-同步方案（锁）</span>
+                      <a href="/2022/01/01/dyld%202%20%E5%92%8C%20dyld%203%20%E6%9C%89%E5%93%AA%E4%BA%9B%E5%8C%BA%E5%88%AB%20%E4%BB%A5%E5%8F%8AiOS15%E4%B8%8Adyld%E7%9A%84%E5%8F%98%E5%8C%96/" title="dyld 2 和 dyld 3 有哪些区别? 以及iOS15上dyld的变化">
+                        <span class="hidden-mobile">dyld 2 和 dyld 3 有哪些区别? 以及iOS15上dyld的变化</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
