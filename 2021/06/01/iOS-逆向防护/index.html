@@ -1,0 +1,915 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="JY">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="**MethodSwizzle ** 利用OC的运行时（Runtime）特性修改 SEL 和 IMP(函数指针) 的关系，打到Hook OC方法的目的 method_exchangeIMP交换两个 IMP class_replaceMethod替换某个 SEL的 IMP （如果没有该方法就添加，相当于换掉这个方法） method_getImplementation 、method_setImpl">
+<meta property="og:type" content="article">
+<meta property="og:title" content="iOS-逆向防护">
+<meta property="og:url" content="https://krystal1110.github.io/2021/06/01/iOS-%E9%80%86%E5%90%91%E9%98%B2%E6%8A%A4/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="**MethodSwizzle ** 利用OC的运行时（Runtime）特性修改 SEL 和 IMP(函数指针) 的关系，打到Hook OC方法的目的 method_exchangeIMP交换两个 IMP class_replaceMethod替换某个 SEL的 IMP （如果没有该方法就添加，相当于换掉这个方法） method_getImplementation 、method_setImpl">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gslif4da10j31lw0egmze.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gsm44y5b44j30o80ka76l.jpg">
+<meta property="article:published_time" content="2021-06-01T10:23:03.000Z">
+<meta property="article:modified_time" content="2021-06-01T10:23:03.000Z">
+<meta property="article:author" content="JY">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gslif4da10j31lw0egmze.jpg">
+  
+  
+  <title>iOS-逆向防护 - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"krystal1110.github.io","root":"/","version":"1.8.14","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"cgyQocXcH1Lfzt5rxclmf892-gzGzoHsz","app_key":"8u61JSryGOloGGDp4xFV1oaM","server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+
+  
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>JY</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/logo.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="iOS-逆向防护"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2021-06-01 18:23" pubdate>
+          2021年6月1日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          9.8k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          82 分钟
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="leancloud-page-views"></span> 次
+        </span>
+        
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">iOS-逆向防护</h1>
+            
+            <div class="markdown-body">
+              
+              <hr>
+<h3 id="MethodSwizzle"><a href="#MethodSwizzle" class="headerlink" title="**MethodSwizzle **"></a>**MethodSwizzle **</h3><ul>
+<li>利用OC的运行时（Runtime）特性修改 <code>SEL</code> 和 <code>IMP(函数指针)</code> 的关系，打到Hook OC方法的目的</li>
+<li><code>method_exchangeIMP</code>交换两个 <code>IMP</code></li>
+<li><code>class_replaceMethod</code>替换某个 <code>SEL</code>的 <code>IMP</code> （如果没有该方法就添加，相当于换掉这个方法）</li>
+<li><code>method_getImplementation</code> 、<code>method_setImplementation</code> 获取和设置某个方法的IMP （很多第三方框架都使用）</li>
+</ul>
+<hr>
+<h3 id="MonKey-Hook"><a href="#MonKey-Hook" class="headerlink" title="MonKey Hook"></a>MonKey Hook</h3><p>Monkey中使用了  <code>libsubstrate.dylib</code></p>
+<ul>
+<li><code>method_setImplementation</code></li>
+<li><code>method_getImplementation</code></li>
+</ul>
+<h4 id="MonKey已经替换的系统函数"><a href="#MonKey已经替换的系统函数" class="headerlink" title="MonKey已经替换的系统函数"></a><strong>MonKey已经替换的系统函数</strong></h4><ul>
+<li>dlsym </li>
+<li>sysctl</li>
+<li>ptrace</li>
+</ul>
+<hr>
+<h3 id="Dobby-（修改静态函数-C-和-swift）"><a href="#Dobby-（修改静态函数-C-和-swift）" class="headerlink" title="Dobby （修改静态函数 C 和 swift）"></a>Dobby （修改静态函数 C 和 swift）</h3><ul>
+<li>实际上是替换 <code>Text段</code>   </li>
+<li>动态修改 （加载到内存的时候修改）</li>
+</ul>
+<hr>
+<h3 id="防护-：lldb-ptrace"><a href="#防护-：lldb-ptrace" class="headerlink" title="防护 ：lldb - ptrace"></a>防护 ：<code>lldb - ptrace</code></h3><ul>
+<li><code>ptrace</code> 是 命令行工程以及 Mac OS 工程里的 <code>&lt;sys/ptrace.h&gt;</code>提供的一个函数 , 可以用来来控制进程附加管理 , 它可以实现禁止应用程序进程被附加的效果 . 在 iOS 中并没有暴露出来 , 但是 iOS 是可以使用的 .</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-comment">/**</span><br><span class="hljs-comment"> arg1: ptrace要做的事情: PT_DENY_ATTACH 表示要控制的是当前进程不允许被附加</span><br><span class="hljs-comment"> arg2: 要操作进程的PID , 0就代表自己</span><br><span class="hljs-comment"> arg3: 地址 取决于第一个参数要做的处理不同传递不同</span><br><span class="hljs-comment"> arg4: 数据 取决于第一个参数要做的处理不同传递不同</span><br><span class="hljs-comment"> */</span><br><span class="hljs-built_in">ptrace</span>(PT_DENY_ATTACH, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>);<br></code></pre></td></tr></table></figure>
+
+<ul>
+<li><p>效果：</p>
+<ul>
+<li>运行工程 , 程序闪退 .</li>
+<li>从手机点开应用 , 应用正常 .</li>
+<li>使用Xcode 自带的 Debug - Attach to process 发现附加失败</li>
+</ul>
+</li>
+<li><p>破解：</p>
+<ul>
+<li>通过符号断点检测</li>
+<li>使用 <code>fishhook</code>  HOOK掉ptrace这个函数</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h3 id="防护：-sysctl"><a href="#防护：-sysctl" class="headerlink" title="防护： sysctl"></a>防护： sysctl</h3><ul>
+<li><code>sysctl ( system control )</code> 是由 <code>&lt;sys/sysctl.h&gt;</code> 提供的一个函数 , 它有很多作用 , 其中一个是可以监测当前进程有没有被附加 . 但是因为其特性 , 只是监测当前时刻应用有没有被附加 .</li>
+<li>因此正向开发中我们往往结合定时器一起使用 , 或者 定时 &#x2F; 定期 &#x2F; 在特定时期 去使用 .</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-meta">#import <span class="hljs-string">&quot;ViewController.h&quot;</span></span><br><span class="hljs-meta">#import <span class="hljs-string">&lt;sys/sysctl.h&gt;</span></span><br>@<span class="hljs-function">interface <span class="hljs-title">ViewController</span> <span class="hljs-params">()</span></span><br><span class="hljs-function">@end</span><br><span class="hljs-function"></span><br><span class="hljs-function">@implementation ViewController</span><br><span class="hljs-function">BOOL <span class="hljs-title">isDebug</span><span class="hljs-params">()</span></span>&#123;<br>    <span class="hljs-type">int</span> name[<span class="hljs-number">4</span>];             <span class="hljs-comment">//里面放字节码。查询的信息</span><br>    name[<span class="hljs-number">0</span>] = CTL_KERN;      <span class="hljs-comment">//内核查询</span><br>    name[<span class="hljs-number">1</span>] = KERN_PROC;     <span class="hljs-comment">//查询进程</span><br>    name[<span class="hljs-number">2</span>] = KERN_PROC_PID; <span class="hljs-comment">//传递的参数是进程的ID</span><br>    name[<span class="hljs-number">3</span>] = <span class="hljs-built_in">getpid</span>();      <span class="hljs-comment">//获取当前进程ID</span><br>    <br>    <span class="hljs-keyword">struct</span> <span class="hljs-title class_">kinfo_proc</span> info;  <span class="hljs-comment">//接受查询结果的结构体</span><br>    <span class="hljs-type">size_t</span> info_size = <span class="hljs-built_in">sizeof</span>(info);  <span class="hljs-comment">//结构体大小</span><br>    <span class="hljs-keyword">if</span>(<span class="hljs-built_in">sysctl</span>(name, <span class="hljs-number">4</span>, &amp;info, &amp;info_size, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>))&#123;<br>        <span class="hljs-built_in">NSLog</span>(@<span class="hljs-string">&quot;查询失败&quot;</span>);<br>        <span class="hljs-keyword">return</span> NO;<br>    &#125;<br>    <span class="hljs-comment">/**</span><br><span class="hljs-comment">    查询结果看info.kp_proc.p_flag 的第12位。如果为1，表示调试状态。</span><br><span class="hljs-comment">    (info.kp_proc.p_flag &amp; P_TRACED) 就是0x800, 即可获取第12位</span><br><span class="hljs-comment">    */</span><br>    <span class="hljs-keyword">return</span> ((info.kp_proc.p_flag &amp; P_TRACED) != <span class="hljs-number">0</span>);<br>&#125;<br><br><span class="hljs-type">static</span> <span class="hljs-type">dispatch_source_t</span> timer;<br><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">debugCheck</span><span class="hljs-params">()</span></span>&#123;<br>    timer = <span class="hljs-built_in">dispatch_source_create</span>(DISPATCH_SOURCE_TYPE_TIMER, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-built_in">dispatch_get_global_queue</span>(<span class="hljs-number">0</span>, <span class="hljs-number">0</span>));<br>    <span class="hljs-built_in">dispatch_source_set_timer</span>(timer, DISPATCH_TIME_NOW, <span class="hljs-number">1.0</span> * NSEC_PER_SEC, <span class="hljs-number">0.0</span> * NSEC_PER_SEC);<br>    <span class="hljs-built_in">dispatch_source_set_event_handler</span>(timer, ^&#123;<br>        <span class="hljs-keyword">if</span> (<span class="hljs-built_in">isDebug</span>()) &#123;<span class="hljs-comment">//在这里写你检测到调试要做的操作</span><br>            <span class="hljs-built_in">NSLog</span>(@<span class="hljs-string">&quot;调试状态!&quot;</span>);<br>        &#125;<span class="hljs-keyword">else</span>&#123;<br>            <span class="hljs-built_in">NSLog</span>(@<span class="hljs-string">&quot;正常！&quot;</span>);<br>        &#125;<br>    &#125;);<br>    <span class="hljs-built_in">dispatch_resume</span>(timer);<br>&#125;<br><br>- (<span class="hljs-type">void</span>)viewDidLoad &#123;<br>    [super viewDidLoad];<br>    <span class="hljs-built_in">debugCheck</span>();<br>&#125;<br><br></code></pre></td></tr></table></figure>
+<ul>
+<li><p>效果：</p>
+<ul>
+<li>可以上报或者 <code>exit</code></li>
+</ul>
+</li>
+<li><p>破解：</p>
+<ul>
+<li>因为 <code>sysctl</code>函数也是系统函数，从而可以使用fishHook来交换</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-built_in">int</span>  (*sysctl_ptr)(<span class="hljs-type">int</span> *, u_int, <span class="hljs-type">void</span> *, <span class="hljs-type">size_t</span> *, <span class="hljs-type">void</span> *, <span class="hljs-type">size_t</span>);<br><br><span class="hljs-function"><span class="hljs-type">int</span>  <span class="hljs-title">my_sysctl</span><span class="hljs-params">(<span class="hljs-type">int</span> * name, u_int namelen, <span class="hljs-type">void</span> * info, <span class="hljs-type">size_t</span> * infoSize, <span class="hljs-type">void</span> * newInfo, <span class="hljs-type">size_t</span> newInfoSize)</span></span>&#123;<br>    <span class="hljs-keyword">if</span> (name[<span class="hljs-number">0</span>] == CTL_KERN &amp;&amp; name[<span class="hljs-number">1</span>] == KERN_PROC &amp;&amp; name[<span class="hljs-number">2</span>] == KERN_PROC_PID &amp;&amp; *infoSize == <span class="hljs-built_in">sizeof</span>(<span class="hljs-keyword">struct</span> kinfo_proc)) &#123;<br>        <br>        <span class="hljs-type">int</span> old = <span class="hljs-built_in">sysctl_ptr</span>(name,namelen,info,infoSize,newInfo,newInfoSize);<br>        <span class="hljs-comment">//拿出info</span><br>        <span class="hljs-keyword">struct</span> <span class="hljs-title class_">kinfo_proc</span> * myinfo = (<span class="hljs-keyword">struct</span> kinfo_proc *)info;<br>        <br>        <span class="hljs-keyword">if</span> ((myinfo-&gt;kp_proc.p_flag &amp; P_TRACED ) != <span class="hljs-number">0</span> ) &#123;<br>            <span class="hljs-comment">//使用异或取反</span><br>            myinfo-&gt;kp_proc.p_flag ^= P_TRACED;<br>        &#125;<br>        <span class="hljs-keyword">return</span> old;<br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-built_in">sysctl_ptr</span>(name,namelen,info,infoSize,newInfo,newInfoSize);<br>&#125;<br><br>+(<span class="hljs-type">void</span>)load&#123;<br>  <br>    <span class="hljs-keyword">struct</span> <span class="hljs-title class_">rebinding</span> rebingSysctl;<br>    rebingSysctl.name = <span class="hljs-string">&quot;sysctl&quot;</span>;<br>    rebingSysctl.replacement = my_sysctl;<br>    rebingSysctl.replaced = (<span class="hljs-type">void</span> *)&amp;sysctl_ptr;<br>    <span class="hljs-keyword">struct</span> <span class="hljs-title class_">rebinding</span> rebs[<span class="hljs-number">1</span>] = &#123;rebingSysctl&#125;;<br>    <span class="hljs-built_in">rebind_symbols</span>(rebs, <span class="hljs-number">1</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+<ul>
+<li>注意：<ul>
+<li>需要慎用 <code>exit</code> 函数</li>
+<li>逆向中通过 <code>exit</code>  添加符号断点，就可以查看函数调用栈，从而可以看到调用 <code>exit</code>的函数地址，在减去首地址就可以拿到函数的偏移量，接着在 <code>Hopper</code> 当中就可以知道调用 <code>exit</code> 的地址了</li>
+<li>我们自己开发所使用的 <code> framework</code> 会比注入的动态库更早的执行，虽然还是会被 <code>fishhook</code> 替换掉，但是可以在此之前，禁用掉 <code>fishhook</code> 或者完成检测</li>
+<li>只不过如果破解人员找到这个 <code>framework</code> ，然后在 <code>load</code> 方法中直接 <code>Return</code></li>
+</ul>
+</li>
+</ul>
+<hr>
+<hr>
+<h3 id="防护：-通过函数地址直接调用-ptrace-和-sysctl"><a href="#防护：-通过函数地址直接调用-ptrace-和-sysctl" class="headerlink" title="防护： 通过函数地址直接调用 ptrace 和 sysctl"></a>防护： 通过函数地址直接调用 <code>ptrace</code> 和 <code>sysctl</code></h3><ul>
+<li><p>在我工程开始我就获取 <code>ptrace / sysctl</code> 的地址 , 后面直接使用地址调用这个函数 . 实际上是可行的 , 利用 <code>dlsym</code>这个函数 .</p>
+<ul>
+<li>通过符号获取函数地址 ( dladdr 函数 ) </li>
+<li>通过函数内部地址找到函数符号 ( dlsym 函数 )</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-meta">#import <span class="hljs-string">&quot;MyPtraceHeader.h&quot;</span></span><br><span class="hljs-meta">#import <span class="hljs-string">&lt;dlfcn.h&gt;</span></span><br>  <br><span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">callFunAddres</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span> </span>&#123;<br>    <span class="hljs-type">int</span> name[<span class="hljs-number">4</span>];             <span class="hljs-comment">//里面放字节码。查询的信息</span><br>    name[<span class="hljs-number">0</span>] = CTL_KERN;      <span class="hljs-comment">//内核查询</span><br>    name[<span class="hljs-number">1</span>] = KERN_PROC;     <span class="hljs-comment">//查询进程</span><br>    name[<span class="hljs-number">2</span>] = KERN_PROC_PID; <span class="hljs-comment">//传递的参数是进程的ID</span><br>    name[<span class="hljs-number">3</span>] = <span class="hljs-built_in">getpid</span>();      <span class="hljs-comment">//获取当前进程ID</span><br>    <br>    <span class="hljs-keyword">struct</span> <span class="hljs-title class_">kinfo_proc</span> info;  <span class="hljs-comment">//接受查询结果的结构体</span><br>    <span class="hljs-type">size_t</span> info_size = <span class="hljs-built_in">sizeof</span>(info);  <span class="hljs-comment">//结构体大小</span><br>    <br>    <span class="hljs-comment">//这里做法是隐藏常量字符串</span><br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">char</span> str[] = &#123;<br>        (<span class="hljs-string">&#x27;a&#x27;</span> ^ <span class="hljs-string">&#x27;s&#x27;</span>),<br>        (<span class="hljs-string">&#x27;a&#x27;</span> ^ <span class="hljs-string">&#x27;y&#x27;</span>),<br>        (<span class="hljs-string">&#x27;a&#x27;</span> ^ <span class="hljs-string">&#x27;s&#x27;</span>),<br>        (<span class="hljs-string">&#x27;a&#x27;</span> ^ <span class="hljs-string">&#x27;c&#x27;</span>),<br>        (<span class="hljs-string">&#x27;a&#x27;</span> ^ <span class="hljs-string">&#x27;t&#x27;</span>),<br>        (<span class="hljs-string">&#x27;a&#x27;</span> ^ <span class="hljs-string">&#x27;l&#x27;</span>),<br>        (<span class="hljs-string">&#x27;a&#x27;</span> ^ <span class="hljs-string">&#x27;\0&#x27;</span>)<br>    &#125;;<br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">char</span> * p = str;<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;%s&quot;</span>, str);<br>    <span class="hljs-keyword">while</span> (((*p) ^= <span class="hljs-string">&#x27;a&#x27;</span>) != <span class="hljs-string">&#x27;\0&#x27;</span>) p++;<br>    <br>    <span class="hljs-type">void</span> * handle = <span class="hljs-built_in">dlopen</span>(<span class="hljs-string">&quot;/usr/lib/system/libsystem_c.dylib&quot;</span>, RTLD_LAZY);<br><br>    <span class="hljs-built_in">int</span>  (*sysctl_ptr)(<span class="hljs-type">int</span> *, u_int, <span class="hljs-type">void</span> *, <span class="hljs-type">size_t</span> *, <span class="hljs-type">void</span> *, <span class="hljs-type">size_t</span>);<br>    <span class="hljs-comment">//获取sysctl函数指针</span><br>    sysctl_ptr = <span class="hljs-built_in">dlsym</span>(handle,(<span class="hljs-type">const</span> <span class="hljs-type">char</span> *)str);<br>    <span class="hljs-keyword">if</span> (sysctl_ptr) &#123;<br>        <br>        <span class="hljs-built_in">sysctl_ptr</span>(name, <span class="hljs-number">4</span>, &amp;info, &amp;info_size, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>);<br>      <br>        <span class="hljs-keyword">if</span> ((info.kp_proc.p_flag &amp; P_TRACED ) != <span class="hljs-number">0</span> )&#123;<br>            <span class="hljs-built_in">NSLog</span>(@<span class="hljs-string">&quot;调试状态&quot;</span>);<br>        &#125;<span class="hljs-keyword">else</span>&#123;<br>            <span class="hljs-built_in">NSLog</span>(@<span class="hljs-string">&quot;正常&quot;</span>);<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<ul>
+<li>破解 <ul>
+<li>使用 <code>fishhook </code> 将  <code>dlopen</code> 与 <code>dlsym</code> 这两个系统函数干掉</li>
+</ul>
+</li>
+</ul>
+<hr>
+<hr>
+<h3 id="防护-汇编"><a href="#防护-汇编" class="headerlink" title="防护 汇编"></a>防护 汇编</h3><ul>
+<li>使用汇编直接调用</li>
+</ul>
+<hr>
+<hr>
+<h3 id="字符串常量隐藏"><a href="#字符串常量隐藏" class="headerlink" title="字符串常量隐藏"></a>字符串常量隐藏</h3><ul>
+<li>例如在App内注册第三方APP的Key,SecretKey等，字符串常量隐藏</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-meta">#<span class="hljs-keyword">define</span> kWxAppID @<span class="hljs-string">&quot;krystal69d7xxxxxx&quot;</span>  </span><br> - (<span class="hljs-type">void</span>)configureForWXSDK&#123;<br>    [WXApi registerApp:kWxAppID<br>         universalLink:@<span class="hljs-string">&quot;123123&quot;</span>];<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>利用Hopper打开MachO就可以看到<br><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gslif4da10j31lw0egmze.jpg" srcset="/img/loading.gif" lazyload>  </p>
+<ul>
+<li>解决办法<ul>
+<li>在方法中返回这个字符串</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-meta">#<span class="hljs-keyword">define</span> KRYSTAL_ENCRYPT_KEY @<span class="hljs-string">&quot;krystal_key&quot;</span></span><br>@implementation ViewController<br>- (<span class="hljs-type">void</span>)viewDidLoad &#123;<br>    [super viewDidLoad];<br>    <span class="hljs-comment">//使用函数代替字符串</span><br>    [self uploadDataWithKey:<span class="hljs-built_in">AES_KEY</span>()];  <br>&#125;<br><br>- (<span class="hljs-type">void</span>)uploadDataWithKey:(NSString *)key&#123;<br>    <span class="hljs-built_in">NSLog</span>(@<span class="hljs-string">&quot;%@&quot;</span>,key);<br>&#125;<br><br><span class="hljs-function"><span class="hljs-type">static</span> NSString * <span class="hljs-title">AES_KEY</span><span class="hljs-params">()</span></span>&#123;<br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">char</span> key[] = &#123;<br>        <span class="hljs-string">&#x27;k&#x27;</span>,<span class="hljs-string">&#x27;r&#x27;</span>,<span class="hljs-string">&#x27;y&#x27;</span>,<span class="hljs-string">&#x27;s&#x27;</span>,<span class="hljs-string">&#x27;t&#x27;</span>,<span class="hljs-string">&#x27;a&#x27;</span>,<span class="hljs-string">&#x27;l&#x27;</span>,<span class="hljs-string">&#x27;_&#x27;</span>,<span class="hljs-string">&#x27;k&#x27;</span>,<span class="hljs-string">&#x27;e&#x27;</span>,<span class="hljs-string">&#x27;y&#x27;</span>,<span class="hljs-string">&#x27;\0&#x27;</span>,<br>    &#125;;<br>    <span class="hljs-keyword">return</span> [NSString stringWithUTF8String:(<span class="hljs-type">const</span> <span class="hljs-type">char</span> *)key];<br>&#125;<br>@end<br></code></pre></td></tr></table></figure>
+
+<ul>
+<li><p><strong>破解：</strong></p>
+<ul>
+<li>静态分析需要找到这个返回 <code> Key</code> 函数</li>
+</ul>
+</li>
+<li><p><strong>升级防护</strong></p>
+<ul>
+<li>通过异或方式</li>
+<li>这些字符不会进入字符常量区 . 编译器直接换算成异或结果 .<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-meta">#<span class="hljs-keyword">define</span> STRING_ENCRYPT_KEY @<span class="hljs-string">&quot;demo_AES_key&quot;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> ENCRYPT_KEY 0xAC</span><br>@<span class="hljs-function">interface <span class="hljs-title">ViewController</span> <span class="hljs-params">()</span></span><br><span class="hljs-function">@end</span><br><span class="hljs-function"></span><br><span class="hljs-function">@implementation ViewController</span><br><span class="hljs-function">- <span class="hljs-params">(<span class="hljs-type">void</span>)</span>viewDidLoad </span>&#123;<br>    [super viewDidLoad];<br><span class="hljs-comment">//    [self uploadDataWithKey:STRING_ENCRYPT_KEY]; //使用宏/常量字符串</span><br>    [self uploadDataWithKey:<span class="hljs-built_in">AES_KEY</span>()]; <span class="hljs-comment">//使用函数代替字符串</span><br>&#125;<br><br>- (<span class="hljs-type">void</span>)uploadDataWithKey:(NSString *)key&#123;<br>    <span class="hljs-built_in">NSLog</span>(@<span class="hljs-string">&quot;%@&quot;</span>,key);<br>&#125;<br><br><span class="hljs-function"><span class="hljs-type">static</span> NSString * <span class="hljs-title">AES_KEY</span><span class="hljs-params">()</span></span>&#123;<br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">char</span> key[] = &#123;<br>        (ENCRYPT_KEY ^ <span class="hljs-string">&#x27;d&#x27;</span>),<br>        (ENCRYPT_KEY ^ <span class="hljs-string">&#x27;e&#x27;</span>),<br>        (ENCRYPT_KEY ^ <span class="hljs-string">&#x27;m&#x27;</span>),<br>        (ENCRYPT_KEY ^ <span class="hljs-string">&#x27;o&#x27;</span>),<br>        (ENCRYPT_KEY ^ <span class="hljs-string">&#x27;_&#x27;</span>),<br>        (ENCRYPT_KEY ^ <span class="hljs-string">&#x27;A&#x27;</span>),<br>        (ENCRYPT_KEY ^ <span class="hljs-string">&#x27;E&#x27;</span>),<br>        (ENCRYPT_KEY ^ <span class="hljs-string">&#x27;S&#x27;</span>),<br>        (ENCRYPT_KEY ^ <span class="hljs-string">&#x27;_&#x27;</span>),<br>        (ENCRYPT_KEY ^ <span class="hljs-string">&#x27;\0&#x27;</span>),<br>    &#125;;<br>    <span class="hljs-type">unsigned</span> <span class="hljs-type">char</span> * p = key;<br>    <span class="hljs-keyword">while</span> (((*p) ^= ENCRYPT_KEY) != <span class="hljs-string">&#x27;\0&#x27;</span>) &#123;<br>        p++;<br>    &#125;<br>    <span class="hljs-keyword">return</span> [NSString stringWithUTF8String:(<span class="hljs-type">const</span> <span class="hljs-type">char</span> *)key];<br>&#125;<br>@end<br></code></pre></td></tr></table></figure></li>
+</ul>
+<ul>
+<li><strong>效果：</strong><br><img src="https://tva1.sinaimg.cn/large/008i3skNgy1gsm44y5b44j30o80ka76l.jpg" srcset="/img/loading.gif" lazyload></li>
+</ul>
+</li>
+</ul>
+<hr>
+<hr>
+<hr>
+<h3 id="动态库检测"><a href="#动态库检测" class="headerlink" title="动态库检测"></a>动态库检测</h3><ul>
+<li><p>可以在服务器上存储一份 <code> _dyld_image_name</code></p>
+</li>
+<li><p>然后本地运行后获取到的上传服务器做比对</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs C++">+ (BOOL)isExternalLibs&#123;<br>    <span class="hljs-keyword">if</span>(TARGET_IPHONE_SIMULATOR)<span class="hljs-keyword">return</span> NO;<br>    <span class="hljs-type">int</span> dyld_count = _dyld_image_count();<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; dyld_count; i++) &#123;<br>        <span class="hljs-type">const</span> <span class="hljs-type">char</span> * imageName = _dyld_get_image_name(i);<br>        NSString *res = [NSString stringWithUTF8String:imageName];<br>        <span class="hljs-keyword">if</span>([res hasPrefix:@<span class="hljs-string">&quot;/var/containers/Bundle/Application&quot;</span>])&#123;<br>            <span class="hljs-keyword">if</span>([res hasSuffix:@<span class="hljs-string">&quot;.dylib&quot;</span>])&#123;<br>                <span class="hljs-comment">//这边还需要过滤掉自己项目中本身有的动态库</span><br>                <span class="hljs-keyword">return</span> YES;<br>            &#125;<br>        &#125;<br>    &#125;<br>    <span class="hljs-keyword">return</span> NO;<br>&#125;<br></code></pre></td></tr></table></figure>
+</li>
+<li><p><strong>破解：</strong> </p>
+<ul>
+<li>可以hook NSString的hasPrefix方法绕过检测</li>
+</ul>
+</li>
+</ul>
+<hr>
+<hr>
+<h3 id="防护-NSFileManager"><a href="#防护-NSFileManager" class="headerlink" title="防护  NSFileManager"></a>防护  NSFileManager</h3><ul>
+<li>使用NSFileManager通过检测一些越狱后的关键文件&#x2F;路径是否可以访问来判断是否越狱 常见的文件&#x2F;路径有<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs C++"> <span class="hljs-type">static</span> <span class="hljs-type">char</span> *JailbrokenPathArr[] = &#123;<span class="hljs-string">&quot;/Applications/Cydia.app&quot;</span>,<br>                                     <span class="hljs-string">&quot;/usr/sbin/sshd&quot;</span>,<br>                                     <span class="hljs-string">&quot;/bin/bash&quot;</span>,<br>                                     <span class="hljs-string">&quot;/etc/apt&quot;</span>,<br>                                     <span class="hljs-string">&quot;/Library/MobileSubstrate&quot;</span>,<br>                                     <span class="hljs-string">&quot;/User/Applications/&quot;</span>&#125;; <br>      <br>      <br>+ (BOOL)isJailbroken1&#123;<br>    <span class="hljs-keyword">if</span>(TARGET_IPHONE_SIMULATOR)<span class="hljs-keyword">return</span> NO;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>;i &lt; <span class="hljs-built_in">sizeof</span>(JailbrokenPathArr) / <span class="hljs-built_in">sizeof</span>(<span class="hljs-type">char</span> *);i++) &#123;<br>        <span class="hljs-keyword">if</span>([[NSFileManager defaultManager] fileExistsAtPath:[NSString stringWithUTF8String:JailbrokenPathArr[i]]])&#123;<br>            <span class="hljs-keyword">return</span> YES;<br>        &#125;<br>    &#125;<br>    <span class="hljs-keyword">return</span> NO;<br>&#125;<br></code></pre></td></tr></table></figure></li>
+<li>破解<ul>
+<li>攻击者可以通过hook NSFileManager的fileExistsAtPath方法来绕过检测<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-comment">//绕过使用NSFileManager判断特定文件是否存在的越狱检测，此时直接返回NO势必会影响程序中对这个方法的正常使用，因此可以先打印一下path，然后判断如果path是用来判断是否越狱则返回NO，否则按照正常逻辑返回</span><br>%hook NSFileManager<br>- (BOOL)fileExistsAtPath:(NSString *)path&#123;<br>    <span class="hljs-keyword">if</span>(TARGET_IPHONE_SIMULATOR)<span class="hljs-keyword">return</span> NO;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>;i &lt; <span class="hljs-built_in">sizeof</span>(JailbrokenPathArr) / <span class="hljs-built_in">sizeof</span>(<span class="hljs-type">char</span> *);i++) &#123;<br>        NSString *jPath = [NSString stringWithUTF8String:JailbrokenPathArr[i]];<br>        <span class="hljs-keyword">if</span>([path isEqualToString:jPath])&#123;<br>            <span class="hljs-keyword">return</span> NO;<br>        &#125;<br>    &#125;<br>    <span class="hljs-keyword">return</span> %orig;<br>&#125;<br>%end<br><br></code></pre></td></tr></table></figure></li>
+</ul>
+</li>
+</ul>
+<hr>
+<hr>
+<h3 id="防护-stat-函数"><a href="#防护-stat-函数" class="headerlink" title="防护 stat 函数"></a>防护 <code>stat</code> 函数</h3><ul>
+<li><p>使用C语言函数stat判断文件是否存在(注:stat函数用于获取对应文件信息，返回0则为获取成功，-1为获取失败)</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs C++">+ (BOOL)isJailbroken2&#123;<br>    <span class="hljs-keyword">if</span>(TARGET_IPHONE_SIMULATOR)<span class="hljs-keyword">return</span> NO;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>;i &lt; <span class="hljs-built_in">sizeof</span>(JailbrokenPathArr) / <span class="hljs-built_in">sizeof</span>(<span class="hljs-type">char</span> *);i++) &#123;<br>        <span class="hljs-keyword">struct</span> <span class="hljs-title class_">stat</span> stat_info;<br>        <span class="hljs-keyword">if</span> (<span class="hljs-number">0</span> == <span class="hljs-built_in">stat</span>(JailbrokenPathArr[i], &amp;stat_info)) &#123;<br>            <span class="hljs-keyword">return</span> YES;<br>        &#125;<br>    &#125;<br>    <span class="hljs-keyword">return</span> NO;<br>&#125;      <br></code></pre></td></tr></table></figure>
+</li>
+<li><p>破解：</p>
+<ul>
+<li>使用fishhook可hook C函数，fishhook通过在mac-o文件中查找并替换函数地址达到hook的目的<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-function"><span class="hljs-type">static</span> <span class="hljs-title">int</span> <span class="hljs-params">(*orig_stat)</span><span class="hljs-params">(<span class="hljs-type">char</span> *c, <span class="hljs-keyword">struct</span> stat *s)</span></span>;<br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">hook_stat</span><span class="hljs-params">(<span class="hljs-type">char</span> *c, <span class="hljs-keyword">struct</span> stat *s)</span></span>&#123;<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>;i &lt; <span class="hljs-built_in">sizeof</span>(JailbrokenPathArr) / <span class="hljs-built_in">sizeof</span>(<span class="hljs-type">char</span> *);i++) &#123;<br>        <span class="hljs-keyword">if</span>(<span class="hljs-number">0</span> == <span class="hljs-built_in">strcmp</span>(c, JailbrokenPathArr[i]))&#123;<br>            <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>        &#125;<br>    &#125;<br>    <span class="hljs-keyword">return</span> <span class="hljs-built_in">orig_stat</span>(c,s);<br>&#125;<br>+(<span class="hljs-type">void</span>)statHook&#123;<br>    <span class="hljs-keyword">struct</span> <span class="hljs-title class_">rebinding</span> stat_rebinding = &#123;<span class="hljs-string">&quot;stat&quot;</span>, hook_stat, (<span class="hljs-type">void</span> *)&amp;orig_stat&#125;;<br>    <span class="hljs-built_in">rebind_symbols</span>((<span class="hljs-keyword">struct</span> rebinding[<span class="hljs-number">1</span>])&#123;stat_rebinding&#125;, <span class="hljs-number">1</span>);<br>&#125;<br><br></code></pre></td></tr></table></figure>
+ 在动态库加载的时候，调用statHook    <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs C"> %ctor&#123;<br>    [StatHook statHook];<br>&#125;<br></code></pre></td></tr></table></figure></li>
+</ul>
+</li>
+<li><p>判断stat的来源是否来自于系统库，因为fishhook通过交换函数地址来实现hook，若hook了stat，则stat来源将指向攻击者注入的动态库中 因此我们可以完善上方的isJailbroken2判断规则，若stat来源非系统库，则直接返回已越狱      </p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs C++">+ (BOOL)isJailbroken2&#123;<br>    <span class="hljs-keyword">if</span>(TARGET_IPHONE_SIMULATOR)<span class="hljs-keyword">return</span> NO;<br>    <span class="hljs-type">int</span> ret ;<br>    Dl_info dylib_info;<br>    <span class="hljs-built_in">int</span> (*func_stat)(<span class="hljs-type">const</span> <span class="hljs-type">char</span> *, <span class="hljs-keyword">struct</span> stat *) = stat;<br>    <span class="hljs-keyword">if</span> ((ret = <span class="hljs-built_in">dladdr</span>(func_stat, &amp;dylib_info))) &#123;<br>        NSString *fName = [NSString stringWithUTF8String:dylib_info.dli_fname];<br>        <span class="hljs-built_in">NSLog</span>(@<span class="hljs-string">&quot;fname--%@&quot;</span>,fName);<br>        <span class="hljs-keyword">if</span>(![fName isEqualToString:@<span class="hljs-string">&quot;/usr/lib/system/libsystem_kernel.dylib&quot;</span>])&#123;<br>            <span class="hljs-keyword">return</span> YES;<br>        &#125;<br>    &#125;<br>    <br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>;i &lt; <span class="hljs-built_in">sizeof</span>(JailbrokenPathArr) / <span class="hljs-built_in">sizeof</span>(<span class="hljs-type">char</span> *);i++) &#123;<br>        <span class="hljs-keyword">struct</span> <span class="hljs-title class_">stat</span> stat_info;<br>        <span class="hljs-keyword">if</span> (<span class="hljs-number">0</span> == <span class="hljs-built_in">stat</span>(JailbrokenPathArr[i], &amp;stat_info)) &#123;<br>            <span class="hljs-keyword">return</span> YES;<br>        &#125;<br>    &#125;<br>    <br>    <span class="hljs-keyword">return</span> NO;<br>&#125;<br><br></code></pre></td></tr></table></figure></li>
+</ul>
+<hr>
+<hr>
+<hr>
+<h3 id="BundleID检测"><a href="#BundleID检测" class="headerlink" title="BundleID检测"></a>BundleID检测</h3><ul>
+<li>进行BundleID检测可以有效防止多开</li>
+<li>获取当前项目的BundleID有多种方法，此处不再赘述，绕过检测则是hook对应的方法，返回原有的BundleID</li>
+<li>防止攻击者绕过检测，可以在自行link的framework中获取BundleID并进行检测，以在被hook前进行校验<br> BundleID并进行校验以避免常见的BundleID获取方法被hook<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs C"><span class="hljs-comment">//获取Boundle ID</span><br><span class="hljs-type">char</span>  * bundleName =  getenv(<span class="hljs-string">&quot;XPC_SERVICE_NAME&quot;</span>);<br>    NSLog(@<span class="hljs-string">&quot;%s&quot;</span>,bundleName);<br></code></pre></td></tr></table></figure></li>
+</ul>
+
+              
+            </div>
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/iOS%E9%80%86%E5%90%91/" class="category-chain-item">iOS逆向</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>iOS-逆向防护</div>
+      <div>https://krystal1110.github.io/2021/06/01/iOS-逆向防护/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>JY</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2021年6月1日</div>
+        </div>
+      
+      
+      <div class="license-meta-item">
+        <div>许可协议</div>
+        <div>
+          
+            
+            
+              <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+              <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                <i class="iconfont icon-by"></i>
+              </span>
+              </a>
+            
+          
+        </div>
+      </div>
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2021/07/01/iOS-%E7%BA%BF%E7%A8%8B%E6%95%B0%E9%87%8F%E7%9B%91%E6%8E%A7/" title="iOS-线程数量监控">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">iOS-线程数量监控</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2021/05/01/%E5%A4%9C%E9%97%B4%E6%A8%A1%E5%BC%8F%E6%A1%86%E6%9E%B6/" title="iOS-夜间模式框架">
+                        <span class="hidden-mobile">iOS-夜间模式框架</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  <article id="comments" lazyload>
+    
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.4.16/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"cgyQocXcH1Lfzt5rxclmf892-gzGzoHsz","appKey":"8u61JSryGOloGGDp4xFV1oaM","path":"window.location.pathname","placeholder":null,"avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
+          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+  </article>
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="leancloud-site-pv-container" style="display: none">
+        总访问量 
+        <span id="leancloud-site-pv"></span>
+         次
+      </span>
+    
+    
+      <span id="leancloud-site-uv-container" style="display: none">
+        总访客数 
+        <span id="leancloud-site-uv"></span>
+         人
+      </span>
+    
+    
+
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+  
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.0/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      headingSelector : CONFIG.toc.headingSelector || 'h1,h2,h3,h4,h5,h6',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      collapseDepth   : CONFIG.toc.collapseDepth || 0,
+      scrollSmooth    : true,
+      headingsOffset  : -boardTop
+    });
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+  });
+</script>
+
+
+  <script>
+  (function() {
+    var enableLang = CONFIG.code_language.enable && CONFIG.code_language.default;
+    var enableCopy = CONFIG.copy_btn;
+    if (!enableLang && !enableCopy) {
+      return;
+    }
+
+    function getBgClass(ele) {
+      return Fluid.utils.getBackgroundLightness(ele) >= 0 ? 'code-widget-light' : 'code-widget-dark';
+    }
+
+    var copyTmpl = '';
+    copyTmpl += '<div class="code-widget">';
+    copyTmpl += 'LANG';
+    copyTmpl += '</div>';
+    jQuery('.markdown-body pre').each(function() {
+      var $pre = jQuery(this);
+      if ($pre.find('code.mermaid').length > 0) {
+        return;
+      }
+      if ($pre.find('span.line').length > 0) {
+        return;
+      }
+
+      var lang = '';
+
+      if (enableLang) {
+        lang = CONFIG.code_language.default;
+        if ($pre[0].children.length > 0 && $pre[0].children[0].classList.length >= 2 && $pre.children().hasClass('hljs')) {
+          lang = $pre[0].children[0].classList[1];
+        } else if ($pre[0].getAttribute('data-language')) {
+          lang = $pre[0].getAttribute('data-language');
+        } else if ($pre.parent().hasClass('sourceCode') && $pre[0].children.length > 0 && $pre[0].children[0].classList.length >= 2) {
+          lang = $pre[0].children[0].classList[1];
+          $pre.parent().addClass('code-wrapper');
+        } else if ($pre.parent().hasClass('markdown-body') && $pre[0].classList.length === 0) {
+          $pre.wrap('<div class="code-wrapper"></div>');
+        }
+        lang = lang.toUpperCase().replace('NONE', CONFIG.code_language.default);
+      }
+      $pre.append(copyTmpl.replace('LANG', lang).replace('code-widget">',
+        getBgClass($pre[0]) + (enableCopy ? ' code-widget copy-btn" data-clipboard-snippet><i class="iconfont icon-copy"></i>' : ' code-widget">')));
+
+      if (enableCopy) {
+        Fluid.utils.createScript('https://lib.baomitu.com/clipboard.js/2.0.10/clipboard.min.js', function() {
+          var clipboard = new window.ClipboardJS('.copy-btn', {
+            target: function(trigger) {
+              var nodes = trigger.parentNode.childNodes;
+              for (var i = 0; i < nodes.length; i++) {
+                if (nodes[i].tagName === 'CODE') {
+                  return nodes[i];
+                }
+              }
+            }
+          });
+          clipboard.on('success', function(e) {
+            e.clearSelection();
+            e.trigger.innerHTML = e.trigger.innerHTML.replace('icon-copy', 'icon-success');
+            setTimeout(function() {
+              e.trigger.innerHTML = e.trigger.innerHTML.replace('icon-success', 'icon-copy');
+            }, 2000);
+          });
+        });
+      }
+    });
+  })();
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="/js/leancloud.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

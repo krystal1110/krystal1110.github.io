@@ -1,0 +1,1001 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="JY">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="简述OSI七层协议 OSI七层协议包括：物理层，数据链路层，网络层，运输层，会话层，表示层， 应用层    简述TCP&#x2F;IP五层协议 TCP&#x2F;IP五层协议包括：物理层，数据链路层，网络层，运输层，应用层    物理层有什么作用 主要解决两台物理机之间的通信，通过二进制比特流的传输来实现，二进制数据表现为电流电压上的强弱，到达目的地再转化为二进制机器码。网卡、集线器工作在这一层">
+<meta property="og:type" content="article">
+<meta property="og:title" content="计算机网络">
+<meta property="og:url" content="https://krystal1110.github.io/2020/08/01/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="简述OSI七层协议 OSI七层协议包括：物理层，数据链路层，网络层，运输层，会话层，表示层， 应用层    简述TCP&#x2F;IP五层协议 TCP&#x2F;IP五层协议包括：物理层，数据链路层，网络层，运输层，应用层    物理层有什么作用 主要解决两台物理机之间的通信，通过二进制比特流的传输来实现，二进制数据表现为电流电压上的强弱，到达目的地再转化为二进制机器码。网卡、集线器工作在这一层">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-08-01T10:23:03.000Z">
+<meta property="article:modified_time" content="2020-08-01T10:23:03.000Z">
+<meta property="article:author" content="JY">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  <title>计算机网络 - Hexo</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"krystal1110.github.io","root":"/","version":"1.8.14","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"cgyQocXcH1Lfzt5rxclmf892-gzGzoHsz","app_key":"8u61JSryGOloGGDp4xFV1oaM","server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+
+  
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>JY</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/logo.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="计算机网络"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2020-08-01 18:23" pubdate>
+          2020年8月1日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          6k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          51 分钟
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="leancloud-page-views"></span> 次
+        </span>
+        
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">计算机网络</h1>
+            
+            <div class="markdown-body">
+              
+              <hr>
+<h3 id="简述OSI七层协议"><a href="#简述OSI七层协议" class="headerlink" title="简述OSI七层协议"></a>简述OSI七层协议</h3><ul>
+<li>OSI七层协议包括：物理层，数据链路层，网络层，运输层，会话层，表示层， 应用层</li>
+</ul>
+<hr>
+<hr>
+<h3 id="简述TCP-x2F-IP五层协议"><a href="#简述TCP-x2F-IP五层协议" class="headerlink" title="简述TCP&#x2F;IP五层协议"></a>简述TCP&#x2F;IP五层协议</h3><ul>
+<li>TCP&#x2F;IP五层协议包括：物理层，数据链路层，网络层，运输层，应用层</li>
+</ul>
+<hr>
+<hr>
+<h3 id="物理层有什么作用"><a href="#物理层有什么作用" class="headerlink" title="物理层有什么作用"></a>物理层有什么作用</h3><ul>
+<li>主要解决两台物理机之间的通信，通过二进制比特流的传输来实现，二进制数据表现为电流电压上的强弱，到达目的地再转化为二进制机器码。网卡、集线器工作在这一层。</li>
+</ul>
+<hr>
+<hr>
+<h3 id="数据链路层有什么作用"><a href="#数据链路层有什么作用" class="headerlink" title="数据链路层有什么作用"></a>数据链路层有什么作用</h3><ul>
+<li>在不可靠的物理介质上提供可靠的传输，接收来自物理层的位流形式的数据，并封装成帧，传送到上一层；同样，也将来自上层的数据帧，拆装为位流形式的数据转发到物理层。这一层在物理层提供的比特流的基础上，通过差错控制、流量控制方法，使有差错的物理线路变为无差错的数据链路。提供物理地址寻址功能。交换机工作在这一层。</li>
+</ul>
+<hr>
+<hr>
+<h3 id="网络层有什么作用"><a href="#网络层有什么作用" class="headerlink" title="网络层有什么作用"></a>网络层有什么作用</h3><ul>
+<li>将网络地址翻译成对应的物理地址，并决定如何将数据从发送方路由到接收方，通过路由选择算法为分组通过通信子网选择最佳路径。路由器工作在这一层。</li>
+</ul>
+<hr>
+<hr>
+<h3 id="传输层有什么作用"><a href="#传输层有什么作用" class="headerlink" title="传输层有什么作用"></a>传输层有什么作用</h3><ul>
+<li>传输层提供了进程间的逻辑通信，传输层向高层用户屏蔽了下面网络层的核心细节，使应用程序看起来像是在两个传输层实体之间有一条端到端的逻辑通信信道。</li>
+</ul>
+<hr>
+<hr>
+<h3 id="会话层有什么作用"><a href="#会话层有什么作用" class="headerlink" title="会话层有什么作用"></a>会话层有什么作用</h3><ul>
+<li>建立会话：身份验证，权限鉴定等；保持会话：对该会话进行维护，在会话维持期间两者可以随时使用这条会话传输局；断开会话：当应用程序或应用层规定的超时时间到期后，OSI会话层才会释放这条会话。</li>
+</ul>
+<hr>
+<hr>
+<h3 id="表示层有什么作用"><a href="#表示层有什么作用" class="headerlink" title="表示层有什么作用"></a>表示层有什么作用</h3><ul>
+<li>对数据格式进行编译，对收到或发出的数据根据应用层的特征进行处理，如处理为文字、图片、音频、视频、文档等，还可以对压缩文件进行解压缩、对加密文件进行解密等。</li>
+</ul>
+<hr>
+<hr>
+<h3 id="应用层有什么作用"><a href="#应用层有什么作用" class="headerlink" title="应用层有什么作用"></a>应用层有什么作用</h3><ul>
+<li>提供应用层协议，如HTTP协议，FTP协议等等，方便应用程序之间进行通信。</li>
+</ul>
+<hr>
+<hr>
+<h3 id="TCP与UDP区别"><a href="#TCP与UDP区别" class="headerlink" title="TCP与UDP区别"></a>TCP与UDP区别</h3><ul>
+<li>TCP作为面向流的协议，提供可靠的、面向连接的运输服务，并且提供点对点通信 </li>
+<li></li>
+<li>UDP作为面向报文的协议，不提供可靠交付，并且不需要连接，不仅仅对点对点，也支持多播和广播</li>
+</ul>
+<hr>
+<hr>
+<h3 id="为何TCP可靠"><a href="#为何TCP可靠" class="headerlink" title="为何TCP可靠"></a>为何TCP可靠</h3><ul>
+<li>TCP有三次握手建立连接，四次挥手关闭连接的机制。除此之外还有滑动窗口和拥塞控制算法。最最关键的是还保留超时重传的机制。对于每份报文也存在校验，保证每份报文可靠性。</li>
+</ul>
+<hr>
+<hr>
+<h3 id="为何UDP不可靠"><a href="#为何UDP不可靠" class="headerlink" title="为何UDP不可靠"></a>为何UDP不可靠</h3><ul>
+<li>UDP面向数据报无连接的，数据报发出去，就不保留数据备份了。仅仅在IP数据报头部加入校验和复用。UDP没有服务器和客户端的概念。UDP报文过长的话是交给IP切成小段，如果某段报废报文就废了。</li>
+</ul>
+<hr>
+<hr>
+<h3 id="简述TCP粘包现象"><a href="#简述TCP粘包现象" class="headerlink" title="简述TCP粘包现象"></a>简述TCP粘包现象</h3><ul>
+<li>TCP是面向流协议，发送的单位是字节流，因此会将多个小尺寸数据被封装在一个tcp报文中发出去的可能性。可以简单的理解成客户端调用了两次send，服务器端一个recv就把信息都读出来了。</li>
+</ul>
+<h3 id="TCP粘包现象处理方法"><a href="#TCP粘包现象处理方法" class="headerlink" title="TCP粘包现象处理方法"></a>TCP粘包现象处理方法</h3><ul>
+<li>固定发送信息长度，或在两个信息之间加入分隔符。</li>
+</ul>
+<hr>
+<hr>
+<h3 id="简述TCP协议的滑动窗口"><a href="#简述TCP协议的滑动窗口" class="headerlink" title="简述TCP协议的滑动窗口"></a>简述TCP协议的滑动窗口</h3><ul>
+<li>滑动窗口是传输层进行流量控制的一种措施，接收方通过通告发 送方自己的窗口大小，从而控制发送方的发送速度，防止发送方发送速度过快而导致自己被淹没。</li>
+</ul>
+<h3 id="简述TCP协议的拥塞控制"><a href="#简述TCP协议的拥塞控制" class="headerlink" title="简述TCP协议的拥塞控制"></a>简述TCP协议的拥塞控制</h3><ul>
+<li><p>拥塞是指一个或者多个交换点的数据报超载，TCP又会有重传机制，导致过载。为了防止拥塞窗口cwnd增长过大引起网络拥塞，还需要设置一个慢开始门限ssthresh状态变量.</p>
+</li>
+<li><p>当cwnd &lt; ssthresh 时，使用慢开始算法。当cwnd &gt; ssthresh 时，停止使用慢开始算法而改用拥塞避免算法。当cwnd &#x3D; ssthresh 时，即可使用慢开始算法，也可使用拥塞避免算法。</p>
+</li>
+<li><p>慢开始：由小到大逐渐增加拥塞窗口的大小，每接一次报文，cwnd指数增加。</p>
+</li>
+<li><p>拥塞避免：cwnd缓慢地增大，即每经过一个往返时间RTT就把发送方的拥塞窗口cwnd加1。</p>
+</li>
+<li><p>快恢复之前的策略：发送方判断网络出现拥塞，就把ssthresh设置为出现拥塞时发送方窗口值的一半，继续执行慢开始，之后进行拥塞避免。</p>
+</li>
+<li><p>快恢复：发送方判断网络出现拥塞，就把ssthresh设置为出现拥塞时发送方窗口值的一半，并把cwnd设置为ssthresh的一半，之后进行拥塞避免。</p>
+</li>
+</ul>
+<hr>
+<hr>
+<h3 id="简述快重传"><a href="#简述快重传" class="headerlink" title="简述快重传"></a>简述快重传</h3><ul>
+<li>如果在超时重传定时器溢出之前，接收到连续的三个重复冗余ACK，发送端便知晓哪个报文段在传输过程中丢失了，于是重发该报文段，不需要等待超时重传定时器溢出再发送该报文。</li>
+</ul>
+<hr>
+<hr>
+<h3 id="TCP三次握手过程"><a href="#TCP三次握手过程" class="headerlink" title="TCP三次握手过程"></a>TCP三次握手过程</h3><ul>
+<li>第一次握手:客户端将标志位SYN置为1，随机产生一个值序列号seq&#x3D;x，并将该数据包发送给服务端，客户端 进入syn_sent状态，等待服务端确认。</li>
+<li>第二次握手:服务端收到数据包后由标志位SYN&#x3D;1知道客户端请求建立连接，服务端将标志位SYN和 ACK都置为1，ack&#x3D;x+1,随机产生一个值seq&#x3D;y，并将该数据包发送给客户端以确认连接请求，服务端进入syn_rcvd状态。</li>
+<li>第三次握手:客户端收到确认后检查,如果正确则将标志位ACK为1，ack&#x3D;y+1，并将该数据包发送给服务端，服务端进行检查如果正确则连接建立成功，客户端和服务端进入established状态，完成三次握手，随后客户端和服务端之间可以开始传输 数据了</li>
+</ul>
+<hr>
+<hr>
+<h3 id="简述半连接队列"><a href="#简述半连接队列" class="headerlink" title="简述半连接队列"></a>简述半连接队列</h3><ul>
+<li>TCP握手中，当服务器处于SYN_RCVD 状态，服务器会把此种状态下请求连接放在一个队列里，该队列称为半连接队列。</li>
+</ul>
+<hr>
+<hr>
+<h3 id="简述SYN攻击"><a href="#简述SYN攻击" class="headerlink" title="简述SYN攻击"></a>简述SYN攻击</h3><ul>
+<li>SYN攻击即利用TCP协议缺陷，通过发送大量的半连接请求，占用半连接队列，耗费CPU和内存资源。</li>
+</ul>
+<h4 id="优化方式："><a href="#优化方式：" class="headerlink" title="优化方式："></a>优化方式：</h4><ul>
+<li>缩短SYN Timeout时间<br>记录IP，若连续受到某个IP的重复SYN报文，从这个IP地址来的包会被一概丢弃。</li>
+</ul>
+<hr>
+<hr>
+<h3 id="TCP四次挥手过程"><a href="#TCP四次挥手过程" class="headerlink" title="TCP四次挥手过程"></a>TCP四次挥手过程</h3><ul>
+<li>第一次挥手：客户端发送一个FIN，用来关闭客户端到服务端的数据传送，客户端进入fin_wait_1状态。</li>
+<li>第二次挥手：服务端收到FIN后，发送一个ACK给客户端，确认序号为收到序号+1，服务端进入Close_wait状态。此时TCP连接处于半关闭状态，即客户端已经没有要发送的数据了，但服务端若发送数据，则客户端仍要接收。</li>
+<li>第三次挥手：服务端发送一个FIN，用来关闭服务端到客户端的数据传送，服务端进入Last_ack状态。</li>
+<li>第四次挥手：客户端收到FIN后，客户端进入Time_wait状态，接着发送一个ACK给服务端，确认后，服务端进入Closed状态，完成四次挥手。</li>
+</ul>
+<hr>
+<hr>
+<h3 id="为什么TCP挥手需要4次"><a href="#为什么TCP挥手需要4次" class="headerlink" title="为什么TCP挥手需要4次"></a>为什么TCP挥手需要4次</h3><ul>
+<li><p>主要原因是当服务端收到客户端的 FIN 数据包后，服务端可能还有数据没发完，不会立即close。</p>
+</li>
+<li><p>所以服务端会先将 ACK 发过去告诉客户端我收到你的断开请求了，但请再给我一点时间，这段时间用来发送剩下的数据报文，发完之后再将 FIN 包发给客户端表示现在可以断了。之后客户端需要收到 FIN 包后发送 ACK 确认断开信息给服务端。</p>
+</li>
+</ul>
+<h3 id="为什么四次挥手释放连接时需要等待2MSL"><a href="#为什么四次挥手释放连接时需要等待2MSL" class="headerlink" title="为什么四次挥手释放连接时需要等待2MSL"></a>为什么四次挥手释放连接时需要等待2MSL</h3><ul>
+<li>MSL即报文最大生存时间。设置2MSL可以保证上一次连接的报文已经在网络中消失，不会出现与新TCP连接报文冲突的情况。</li>
+</ul>
+<hr>
+<hr>
+<h3 id="简述DNS协议"><a href="#简述DNS协议" class="headerlink" title="简述DNS协议"></a>简述DNS协议</h3><ul>
+<li>DNS协议是基于UDP的应用层协议，它的功能是根据用户输入的域名，解析出该域名对应的IP地址，从而给客户端进行访问。</li>
+</ul>
+<h3 id="简述DNS解析过程"><a href="#简述DNS解析过程" class="headerlink" title="简述DNS解析过程"></a>简述DNS解析过程</h3><ol>
+<li><p>客户机发出查询请求，在本地计算机缓存查找，若没有找到，就会将请求发送给dns服务器</p>
+</li>
+<li><p>本地dns服务器会在自己的区域里面查找，找到即根据此记录进行解析，若没有找到，就会在本地的缓存里面查找</p>
+</li>
+<li><p>本地服务器没有找到客户机查询的信息，就会将此请求发送到根域名dns服务器</p>
+</li>
+<li><p>根域名服务器解析客户机请求的根域部分，它把包含的下一级的dns服务器的地址返回到客户机的dns服务器地址</p>
+</li>
+<li><p>客户机的dns服务器根据返回的信息接着访问下一级的dns服务器</p>
+</li>
+<li><p>这样递归的方法一级一级接近查询的目标，最后在有目标域名的服务器上面得到相应的IP信息</p>
+</li>
+<li><p>客户机的本地的dns服务器会将查询结果返回给我们的客户机</p>
+</li>
+<li><p>客户机根据得到的ip信息访问目标主机，完成解析过程</p>
+</li>
+</ol>
+<hr>
+<hr>
+<h3 id="简述HTTP协议"><a href="#简述HTTP协议" class="headerlink" title="简述HTTP协议"></a>简述HTTP协议</h3><ul>
+<li>http协议是超文本传输协议。它是基于TCP协议的应用层传输协议，即客户端和服务端进行数据传输的一种规则。该协议本身HTTP 是一种无状态的协议。</li>
+</ul>
+<hr>
+<hr>
+<h3 id="简述cookie"><a href="#简述cookie" class="headerlink" title="简述cookie"></a>简述cookie</h3><ul>
+<li><p>HTTP 协议本身是无状态的，为了使其能处理更加复杂的逻辑，HTTP&#x2F;1.1 引入 Cookie 来保存状态信息。</p>
+</li>
+<li><p>Cookie是由服务端产生的，再发送给客户端保存，当客户端再次访问的时候，服务器可根据cookie辨识客户端是哪个，以此可以做个性化推送，免账号密码登录等等。</p>
+</li>
+</ul>
+<hr>
+<hr>
+<h3 id="简述session"><a href="#简述session" class="headerlink" title="简述session"></a>简述session</h3><ul>
+<li>session用于标记特定客户端信息，存在在服务器的一个文件里。一般客户端带Cookie对服务器进行访问，可通过cookie中的session id从整个session中查询到服务器记录的关于客户端的信息。</li>
+</ul>
+<h3 id="简述http状态码和对应的信息"><a href="#简述http状态码和对应的信息" class="headerlink" title="简述http状态码和对应的信息"></a>简述http状态码和对应的信息</h3><ul>
+<li><p>1XX：接收的信息正在处理</p>
+</li>
+<li><p>2XX：请求正常处理完毕</p>
+</li>
+<li><p>3XX：重定向</p>
+</li>
+<li><p>4XX：客户端错误</p>
+</li>
+<li><p>5XX：服务端错误</p>
+</li>
+<li><p>常见错误码：301：永久重定向 302：临时重定向 304：资源没修改，用之前缓存就行 400：客户端请求的报文有错误 403：表示服务器禁止访问资源 404：表示请求的资源在服务器上不存在或未找到</p>
+</li>
+<li><p>转发和重定向的区别<br>转发是服务器行为。服务器直接向目标地址访问URL,将相应内容读取之后发给浏览器，用户浏览器地址栏URL不变，转发页面和转发到的页面可以共享request里面的数据。</p>
+</li>
+<li><p>重定向是利用服务器返回的状态码来实现的，如果服务器返回301或者302，浏览器收到新的消息后自动跳转到新的网址重新请求资源。用户的地址栏url会发生改变，而且不能共享数据。</p>
+</li>
+</ul>
+<hr>
+<hr>
+<ul>
+<li><p>简述http1.0<br>规定了请求头和请求尾，响应头和响应尾（get post）</p>
+</li>
+<li><p>每一个请求都是一个单独的连接，做不到连接的复用</p>
+</li>
+</ul>
+<hr>
+<hr>
+<h3 id="简述http1-1的改进"><a href="#简述http1-1的改进" class="headerlink" title="简述http1.1的改进"></a>简述http1.1的改进</h3><ul>
+<li><p>HTTP1.1默认开启长连接，在一个TCP连接上可以传送多个HTTP请求和响应。使用 TCP 长连接的方式改善了 HTTP&#x2F;1.0 短连接造成的性能开销。</p>
+</li>
+<li><p>支持管道（pipeline）网络传输，只要第一个请求发出去了，不必等其回来，就可以发第二个请求出去，可以减少整体的响应时间。</p>
+</li>
+<li><p>服务端无法主动push</p>
+</li>
+</ul>
+<hr>
+<hr>
+<h3 id="简述HTTP短连接与长连接区别"><a href="#简述HTTP短连接与长连接区别" class="headerlink" title="简述HTTP短连接与长连接区别"></a>简述HTTP短连接与长连接区别</h3><p>HTTP中的长连接短连接指HTTP底层TCP的连接。</p>
+<ul>
+<li><p>短连接：客户端与服务器进行一次HTTP连接操作，就进行一次TCP连接，连接结束TCP关闭连接。</p>
+</li>
+<li><p>长连接：如果HTTP头部带有参数keep-alive，即开启长连接网页完成打开后，底层用于传输数据的TCP连接不会直接关闭，会根据服务器设置的保持时间保持连接，保持时间过后连接关闭。</p>
+</li>
+</ul>
+<hr>
+<hr>
+<h3 id="简述http2-0的改进"><a href="#简述http2-0的改进" class="headerlink" title="简述http2.0的改进"></a>简述http2.0的改进</h3><ul>
+<li><p>提出多路复用。多路复用前，文件时串行传输的，请求a文件，b文件只能等待，并且连接数过多。引入多路复用，a文件b文件可以同时传输。</p>
+</li>
+<li><p>引入了二进制数据帧。其中帧对数据进行顺序标识，有了序列id，服务器就可以进行并行传输数据。</p>
+</li>
+</ul>
+<h3 id="http与https的区别"><a href="#http与https的区别" class="headerlink" title="http与https的区别"></a>http与https的区别</h3><ul>
+<li>http所有传输的内容都是明文，并且客户端和服务器端都无法验证对方的身份。https具有安全性的ssl加密传输协议，加密采用对称加密， https协议需要到ca申请证书，一般免费证书很少，需要交费。</li>
+</ul>
+<hr>
+<hr>
+<h3 id="简述TLS-x2F-SSL-HTTP-HTTPS的关系"><a href="#简述TLS-x2F-SSL-HTTP-HTTPS的关系" class="headerlink" title="简述TLS&#x2F;SSL, HTTP, HTTPS的关系"></a>简述TLS&#x2F;SSL, HTTP, HTTPS的关系</h3><ul>
+<li><p>SSL全称为Secure Sockets Layer即安全套接层，其继任为TLSTransport Layer Security传输层安全协议，均用于在传输层为数据通讯提供安全支持。</p>
+</li>
+<li><p>可以将HTTPS协议简单理解为HTTP协议＋TLS&#x2F;SSL</p>
+</li>
+</ul>
+<hr>
+<hr>
+<h3 id="https的连接过程"><a href="#https的连接过程" class="headerlink" title="https的连接过程"></a>https的连接过程</h3><ul>
+<li><p>浏览器将支持的加密算法信息发给服务器<br>服务器选择一套浏览器支持的加密算法，以证书的形式回发给浏览器<br>客户端(SSL&#x2F;TLS)解析证书验证证书合法性，生成对称加密的密钥，我们将该密钥称之为client key，即客户端密钥，用服务器的公钥对客户端密钥进行非对称加密。<br>客户端会发起HTTPS中的第二个HTTP请求，将加密之后的客户端对称密钥发送给服务器<br>服务器接收到客户端发来的密文之后，会用自己的私钥对其进行非对称解密，解密之后的明文就是客户端密钥，然后用客户端密钥对数据进行对称加密，这样数据就变成了密文。<br>服务器将加密后的密文发送给客户端<br>客户端收到服务器发送来的密文，用客户端密钥对其进行对称解密，得到服务器发送的数据。这样HTTPS中的第二个HTTP请求结束，整个HTTPS传输完成<br>Get与Post区别<br>Get：指定资源请求数据，刷新无害，Get请求的数据会附加到URL中，传输数据的大小受到url的限制。</p>
+</li>
+<li><p>Post：向指定资源提交要被处理的数据。刷新会使数据会被重复提交。post在发送数据前会先将请求头发送给服务器进行确认，然后才真正发送数据。</p>
+</li>
+<li><p>Get方法参数有大小限制吗<br>一般HTTP协议里并不限制参数大小限制。但一般由于get请求是直接附加到地址栏里面的，由于浏览器地址栏有长度限制，因此使GET请求在浏览器实现层面上看会有长度限制。</p>
+</li>
+</ul>
+<h3 id="了解REST-API吗"><a href="#了解REST-API吗" class="headerlink" title="了解REST API吗"></a>了解REST API吗</h3><ul>
+<li><p>REST API全称为表述性状态转移（Representational State Transfer，REST）即利用HTTP中get、post、put、delete以及其他的HTTP方法构成REST中数据资源的增删改查操作：</p>
+</li>
+<li><p>Create ：POST<br>Read ：GET<br>Update ：PUT&#x2F;PATCH<br>Delete：DELETE<br>浏览器中输入一个网址后，具体发生了什么<br>进行DNS解析操作，根据DNS解析的结果查到服务器IP地址<br>通过ip寻址和arp，找到服务器，并利用三次握手建立TCP连接<br>浏览器生成HTTP报文，发送HTTP请求，等待服务器响应<br>服务器处理请求，并返回给浏览器<br>根据HTTP是否开启长连接，进行TCP的挥手过程<br>浏览器根据收到的静态资源进行页面渲染</p>
+</li>
+</ul>
+<hr>
+<hr>
+<h3 id="HTTPS相关"><a href="#HTTPS相关" class="headerlink" title="HTTPS相关"></a>HTTPS相关</h3><p>1）HTTPS 结合使用了 非对称加密算法，对称加密算法，hash算法，分别利用他们的优势，避免他们的缺点。利用非对称加密算法获得对称加密算法的秘钥，保证他的安全性；然后实际的网页内容的加密使用的是对称加密算法，利用了对称加密算法速度快的优势，hash算法主要是防止篡改的发生，是一种校验机制，最后数字证书，保证了服务器在将非对称加密算法的公钥传给浏览器时的安全性(不会被中间人篡改)，同时也标志了服务器的身份。</p>
+<p>2）HTTPS的四大金刚：</p>
+<p>非对称加密算法(对称加密算法的秘钥) + 对称加密算法(加密内容) + 数字证书(防止篡改非对称加密算法的公钥) + HASH算法(防止篡改消息)&#x3D;&#x3D; HTTPS</p>
+<p>3）HTTPS的本质是什么？</p>
+<p>HTTPS的本质就是在HTTP连接发起之前，先使用SSL&#x2F;TLS协议，协调客户端和服务端，在两端各自生产一个对称加密算法的秘钥，</p>
+<p>然后使用普通的HTTP协议传输 经过对称加密算法加密的网页内容。因为对称加密算法的秘钥是安全的，所以对称加密算法加密的网页内容也是安全的。</p>
+
+              
+            </div>
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" class="category-chain-item">计算机网络</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>计算机网络</div>
+      <div>https://krystal1110.github.io/2020/08/01/计算机网络/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>JY</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2020年8月1日</div>
+        </div>
+      
+      
+      <div class="license-meta-item">
+        <div>许可协议</div>
+        <div>
+          
+            
+            
+              <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+              <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                <i class="iconfont icon-by"></i>
+              </span>
+              </a>
+            
+          
+        </div>
+      </div>
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2021/02/16/%E5%8A%A8%E6%80%81%E5%BA%93%E4%B8%8E%E9%9D%99%E6%80%81%E5%BA%93%E7%9A%84%E5%8C%BA%E5%88%AB/" title="iOS-动态库与静态库的区别">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">iOS-动态库与静态库的区别</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2020/04/16/iOS%E4%B9%8B%E5%90%8C%E6%AD%A5%E6%96%B9%E6%A1%88%EF%BC%88%E9%94%81%EF%BC%89/" title="iOS-同步方案（锁）">
+                        <span class="hidden-mobile">iOS-同步方案（锁）</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  <article id="comments" lazyload>
+    
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.4.16/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"cgyQocXcH1Lfzt5rxclmf892-gzGzoHsz","appKey":"8u61JSryGOloGGDp4xFV1oaM","path":"window.location.pathname","placeholder":null,"avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
+          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+  </article>
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="leancloud-site-pv-container" style="display: none">
+        总访问量 
+        <span id="leancloud-site-pv"></span>
+         次
+      </span>
+    
+    
+      <span id="leancloud-site-uv-container" style="display: none">
+        总访客数 
+        <span id="leancloud-site-uv"></span>
+         人
+      </span>
+    
+    
+
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+  
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.0/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      headingSelector : CONFIG.toc.headingSelector || 'h1,h2,h3,h4,h5,h6',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      collapseDepth   : CONFIG.toc.collapseDepth || 0,
+      scrollSmooth    : true,
+      headingsOffset  : -boardTop
+    });
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+  });
+</script>
+
+
+  <script>
+  (function() {
+    var enableLang = CONFIG.code_language.enable && CONFIG.code_language.default;
+    var enableCopy = CONFIG.copy_btn;
+    if (!enableLang && !enableCopy) {
+      return;
+    }
+
+    function getBgClass(ele) {
+      return Fluid.utils.getBackgroundLightness(ele) >= 0 ? 'code-widget-light' : 'code-widget-dark';
+    }
+
+    var copyTmpl = '';
+    copyTmpl += '<div class="code-widget">';
+    copyTmpl += 'LANG';
+    copyTmpl += '</div>';
+    jQuery('.markdown-body pre').each(function() {
+      var $pre = jQuery(this);
+      if ($pre.find('code.mermaid').length > 0) {
+        return;
+      }
+      if ($pre.find('span.line').length > 0) {
+        return;
+      }
+
+      var lang = '';
+
+      if (enableLang) {
+        lang = CONFIG.code_language.default;
+        if ($pre[0].children.length > 0 && $pre[0].children[0].classList.length >= 2 && $pre.children().hasClass('hljs')) {
+          lang = $pre[0].children[0].classList[1];
+        } else if ($pre[0].getAttribute('data-language')) {
+          lang = $pre[0].getAttribute('data-language');
+        } else if ($pre.parent().hasClass('sourceCode') && $pre[0].children.length > 0 && $pre[0].children[0].classList.length >= 2) {
+          lang = $pre[0].children[0].classList[1];
+          $pre.parent().addClass('code-wrapper');
+        } else if ($pre.parent().hasClass('markdown-body') && $pre[0].classList.length === 0) {
+          $pre.wrap('<div class="code-wrapper"></div>');
+        }
+        lang = lang.toUpperCase().replace('NONE', CONFIG.code_language.default);
+      }
+      $pre.append(copyTmpl.replace('LANG', lang).replace('code-widget">',
+        getBgClass($pre[0]) + (enableCopy ? ' code-widget copy-btn" data-clipboard-snippet><i class="iconfont icon-copy"></i>' : ' code-widget">')));
+
+      if (enableCopy) {
+        Fluid.utils.createScript('https://lib.baomitu.com/clipboard.js/2.0.10/clipboard.min.js', function() {
+          var clipboard = new window.ClipboardJS('.copy-btn', {
+            target: function(trigger) {
+              var nodes = trigger.parentNode.childNodes;
+              for (var i = 0; i < nodes.length; i++) {
+                if (nodes[i].tagName === 'CODE') {
+                  return nodes[i];
+                }
+              }
+            }
+          });
+          clipboard.on('success', function(e) {
+            e.clearSelection();
+            e.trigger.innerHTML = e.trigger.innerHTML.replace('icon-copy', 'icon-success');
+            setTimeout(function() {
+              e.trigger.innerHTML = e.trigger.innerHTML.replace('icon-success', 'icon-copy');
+            }, 2000);
+          });
+        });
+      }
+    });
+  })();
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="/js/leancloud.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
