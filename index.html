@@ -318,6 +318,60 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h1 class="index-header">
         
+        <a href="/2021/09/01/Swift-weak%E7%9A%84%E5%AE%9E%E7%8E%B0/" target="_self">
+          Swift-weak的实现
+        </a>
+      </h1>
+
+      <a class="index-excerpt" href="/2021/09/01/Swift-weak%E7%9A%84%E5%AE%9E%E7%8E%B0/" target="_self">
+        <div>
+          
+          在Swift中, SideTable 是针对有需要的对象而创建，系统会为目标对象分配一块新的内存来保存该对象额外的信息。 因为这不是对象必须的内容，所以这个 SideTable 可有可无。对象会有一个指向 SideTable 的指针，同时 SideTable 也有一个指回原对象的指针。在实现上为了不额外多占用内存，目前只有在创建弱引用时，会先把对象的引用计数放到新创建的 SideTable 去，再
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2021-09-01 18:23" pubdate>
+              2021-09-01
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Swift/" class="category-chain-item">Swift</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
         <a href="/2021/08/02/iOS-%E7%BC%96%E8%AF%91%E8%BF%87%E7%A8%8B%E6%A2%B3%E7%90%86/" target="_self">
           iOS-编译过程梳理
         </a>
@@ -351,6 +405,60 @@
       <span class="category-chain">
         
   <a href="/categories/iOS%E8%BF%9B%E9%98%B6/" class="category-chain-item">iOS进阶</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2021/07/01/iOS-%E7%BA%BF%E7%A8%8B%E6%95%B0%E9%87%8F%E7%9B%91%E6%8E%A7/" target="_self">
+          iOS-线程数量监控
+        </a>
+      </h1>
+
+      <a class="index-excerpt" href="/2021/07/01/iOS-%E7%BA%BF%E7%A8%8B%E6%95%B0%E9%87%8F%E7%9B%91%E6%8E%A7/" target="_self">
+        <div>
+          
+          在iOS开发中，我们会经常开辟新的线程去做一些事，如何合理的开辟线程，在App开发阶段，监控线程的开辟数量，避免线上发生意外情况。  当线程过多或瞬间创建大量子线程(线程爆炸)，就在控制台打印信息，并记录信息。  创建子线程过多，是会造成性能问题的，因为创建线程需要占用内存空间（默认的情况下，主线程占1M,子线程占用512KB）。  不合理创建和使用线程，容易引发数据一致性（线程安全）和死锁问题。
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2021-07-01 18:23" pubdate>
+              2021-07-01
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/iOS%E6%BA%90%E7%A0%81/" class="category-chain-item">iOS源码</a>
   
   
 
