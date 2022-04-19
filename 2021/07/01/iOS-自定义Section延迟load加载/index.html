@@ -16,12 +16,12 @@
   <meta name="author" content="JY">
   <meta name="keywords" content="">
   
-    <meta name="description" content="在iOS开发中，我们会经常开辟新的线程去做一些事，如何合理的开辟线程，在App开发阶段，监控线程的开辟数量，避免线上发生意外情况。  当线程过多或瞬间创建大量子线程(线程爆炸)，就在控制台打印信息，并记录信息。  创建子线程过多，是会造成性能问题的，因为创建线程需要占用内存空间（默认的情况下，主线程占1M,子线程占用512KB）。  不合理创建和使用线程，容易引发数据一致性（线程安全）和死锁问题。">
+    <meta name="description" content="在指定的segment和section中存入数据之前我们已经了解过machO的结构了，那么我们有没有办法去修改或者新增segment和section当中的数据呢，答案是可以的，使用__attribute__ section将指定的数据存储到指定的segmemt和section中，也可以在通过在Build Settings中的Other Linker Flags设置链接参数，从而达到移动段，新增段，">
 <meta property="og:type" content="article">
-<meta property="og:title" content="iOS-线程数量监控">
-<meta property="og:url" content="https://krystal1110.github.io/2021/07/01/iOS-%E7%BA%BF%E7%A8%8B%E6%95%B0%E9%87%8F%E7%9B%91%E6%8E%A7/index.html">
+<meta property="og:title" content="iOS-自定义Section延迟load加载">
+<meta property="og:url" content="https://krystal1110.github.io/2021/07/01/iOS-%E8%87%AA%E5%AE%9A%E4%B9%89Section%E5%BB%B6%E8%BF%9Fload%E5%8A%A0%E8%BD%BD/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="在iOS开发中，我们会经常开辟新的线程去做一些事，如何合理的开辟线程，在App开发阶段，监控线程的开辟数量，避免线上发生意外情况。  当线程过多或瞬间创建大量子线程(线程爆炸)，就在控制台打印信息，并记录信息。  创建子线程过多，是会造成性能问题的，因为创建线程需要占用内存空间（默认的情况下，主线程占1M,子线程占用512KB）。  不合理创建和使用线程，容易引发数据一致性（线程安全）和死锁问题。">
+<meta property="og:description" content="在指定的segment和section中存入数据之前我们已经了解过machO的结构了，那么我们有没有办法去修改或者新增segment和section当中的数据呢，答案是可以的，使用__attribute__ section将指定的数据存储到指定的segmemt和section中，也可以在通过在Build Settings中的Other Linker Flags设置链接参数，从而达到移动段，新增段，">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-07-01T10:23:03.000Z">
 <meta property="article:modified_time" content="2021-07-01T10:23:03.000Z">
@@ -29,7 +29,7 @@
 <meta name="twitter:card" content="summary_large_image">
   
   
-  <title>iOS-线程数量监控 - Hexo</title>
+  <title>iOS-自定义Section延迟load加载 - Hexo</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -186,7 +186,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="iOS-线程数量监控"></span>
+            <span id="subtitle" data-typed-text="iOS-自定义Section延迟load加载"></span>
           
         </div>
 
@@ -209,7 +209,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          4.7k 字
+          3.3k 字
         
       </span>
     
@@ -220,7 +220,7 @@
         
         
         
-          39 分钟
+          28 分钟
         
       </span>
     
@@ -266,44 +266,67 @@
         <div id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">iOS-线程数量监控</h1>
+            <h1 style="display: none">iOS-自定义Section延迟load加载</h1>
             
             <div class="markdown-body">
               
-              <p>在iOS开发中，我们会经常开辟新的线程去做一些事，如何合理的开辟线程，在App开发阶段，监控线程的开辟数量，避免线上发生意外情况。 </p>
-<p>当线程过多或瞬间创建大量子线程(线程爆炸)，就在控制台打印信息，并记录信息。</p>
-<ol>
-<li><p>创建子线程过多，是会造成性能问题的，因为创建线程需要占用内存空间（默认的情况下，主线程占1M,子线程占用512KB）。</p>
+              <h4 id="在指定的segment和section中存入数据"><a href="#在指定的segment和section中存入数据" class="headerlink" title="在指定的segment和section中存入数据"></a>在指定的segment和section中存入数据</h4><p>之前我们已经了解过<code>machO</code>的结构了，那么我们有没有办法去修改或者新增<code>segment</code>和<code>section</code>当中的数据呢，答案是可以的，使用<code>__attribute__ section</code>将指定的数据存储到指定的<code>segmemt</code>和<code>section</code>中，也可以在通过在<code>Build Settings</code>中的<code>Other Linker Flags</code>设置链接参数，从而达到移动段，新增段，赋予权限等操作</p>
+<h4 id="attribute-的用法"><a href="#attribute-的用法" class="headerlink" title=" __attribute__的用法"></a><code> __attribute__</code>的用法</h4><p><code>__attribute__</code> 可以用来设置函数属性（Function Attribute）、变量属性（Variable Attribute）和类型属性（Type Attribute）</p>
+<ul>
+<li><code>__attribute__((format()))</code> 按照指定格式进行参数检查。</li>
+</ul>
+<hr>
+<ul>
+<li><code>__attribute__((__always_inline__))</code> 强制内联。</li>
+</ul>
+<hr>
+<ul>
+<li><code>__attribute__((deprecated(&quot;Use xxx: instead&quot;)</code> 这个可能是我们见的比较多的，用来标记某个方法已经被废弃了，需要用其它的方法代替。</li>
+</ul>
+<hr>
+<ul>
+<li><code>__attribute__((__unused__))</code> 标记函数或变量可能不会用到。</li>
+</ul>
+<hr>
+<ul>
+<li><p><code>__attribute__((visibility(&quot;visibility_type&quot;)))</code> 标记动态库符号是否可见，有以下取值：</p>
+<pre><code class="hljs">   1.  `default` 符号可见，可导出。
+   
+       2.  `hidden` 符号隐藏，不可导出，只能在本动态库内调用。
+</code></pre>
 </li>
-<li><p>不合理创建和使用线程，容易引发数据一致性（线程安全）和死锁问题。</p>
-</li>
-</ol>
-<p>因为在iOS中基本上都是使用的<code>p_thread</code>，在<code>Mach</code>层中<code>thread_basic_info</code> 结构体封装了单个线程的基本信息。</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs objective-c">struct thread_basic_info &#123;<br>    time_value_t  user_time;      /* user run time */<br>    time_value_t  system_time;    /* system run time */<br>    integer_t    cpu_usage;       /* scaled cpu usage percentage */<br>    policy_t     policy;          /* scheduling policy in effect */<br>    integer_t    run_state;       /* run state (see below) */<br>    integer_t    flags;           /* various flags (see below) */<br>    integer_t    suspend_count;   /* suspend count for thread */<br>    integer_t    sleep_time;      /* number of seconds that thread  has been sleeping */<br>&#125;<br></code></pre></td></tr></table></figure>
+</ul>
+<hr>
+<ul>
+<li><code>__attribute__((objc_designated_initializer))</code> 明确指定用于初始化的方法。一个优秀的设计，初始化接口可以有多个，但最终多个初始化初始化接口都会调用 <code>designed initializer</code> 方法。</li>
+</ul>
+<hr>
+<ul>
+<li><code>__attribute__((unavailable))</code>、<code>__attribute__((unavailable(&quot;Must use xxx: instead.&quot;)));</code> 标记方法被禁用，不能直接调用，但这并不意味着该方法不能被调用，在 Objective-C 中使用 runtime 依然可以调用。</li>
+</ul>
+<hr>
+<ul>
+<li><code>__attribute__((section(&quot;segment,section&quot;)))</code> 将一个指定的数据储存到我们需要的 segment 和 section 中。</li>
+</ul>
+<hr>
+<ul>
+<li><code>__attribute__((constructor))</code> 被 <code>attribute((constructor))</code> 标记的函数，会在 <code>main</code> 函数之前或动态库加载时执行。在 mach-o 中，被 <code>attribute((constructor))</code> 标记的函数会在 <code>_DATA</code> 段的 <code>__mod_init_func</code> 区中。当多个被标记 <code>attribute((constructor))</code> 的方法想要有顺序的执行，怎么办？<code>attribute((constructor))</code> 是支持优先级的：<code>_attribute((constructor(1)))</code></li>
+</ul>
+<hr>
+<ul>
+<li><code>__attribute__((destructor))</code> 和 <code>attribute((constructor))</code> 相反：被 <code>attribute((destructor))</code> 标记的函数，会在 <code>main</code> 函数退出或动态库卸载时执行。在 mach-o 中此类函数会放在 <code>_DATA</code> 段的 <code>__mod_term_func</code> 区中</li>
+</ul>
+<p>… 还有很多 这里就不一一列举了</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs objective-c">struct JYProtocolInfo&#123;<br>    char *className;<br>    char *method;<br>&#125;;<br><br> <br><br>#define JYProtocolRegister(_className_,_method_)\<br>__attribute__((used)) static struct JYProtocolInfo JYProtocolInfo##_className_ \<br>__attribute__ ((used, section (&quot;__DATA,JYLoadDelayData&quot;))) =\<br>&#123;\<br>    .className = #_className_,\<br>    .method = #_method_,\<br>&#125;;<br><br><br>@interface JYLoadDelayTool : NSObject<br><br>+ (void)readDataFromMachO;<br><br>+ (void)xxx;<br><br>@end<br></code></pre></td></tr></table></figure>
 
-<p>一个<code>Mach Task</code>包含它的线程列表。内核提供了<code>task_threads</code> API 调用获取指定 task 的线程列表，然后可以通过<code>thread_info</code> API调用来查询指定线程的信息，在 thread_act.h 中有相关定义。</p>
-<p><code>task_threads</code> 将<code>target_task</code> 任务中的所有线程保存在<code>act_list</code>数组中，act_listCnt表示线程个数：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs objective-c">kern_return_t task_threads<br>(<br>    task_t target_task,<br>    thread_act_array_t *act_list,<br>    mach_msg_type_number_t *act_listCnt<br>);<br></code></pre></td></tr></table></figure>
 
-<p> <code>thread_info</code>结构如下</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">kern_return_t</span> <span class="hljs-title">thread_info</span></span><br><span class="hljs-function"><span class="hljs-params">(</span></span><br><span class="hljs-params"><span class="hljs-function">    <span class="hljs-type">thread_act_t</span> target_act,</span></span><br><span class="hljs-params"><span class="hljs-function">    <span class="hljs-type">thread_flavor_t</span> flavor,  <span class="hljs-comment">// 传入不同的宏定义获取不同的线程信息</span></span></span><br><span class="hljs-params"><span class="hljs-function">    <span class="hljs-type">thread_info_t</span> thread_info_out,  <span class="hljs-comment">// 查询到的线程信息</span></span></span><br><span class="hljs-params"><span class="hljs-function">    <span class="hljs-type">mach_msg_type_number_t</span> *thread_info_outCnt  <span class="hljs-comment">// 信息的大小</span></span></span><br><span class="hljs-params"><span class="hljs-function">)</span></span>;<br></code></pre></td></tr></table></figure>
-
-<p> 如果频繁调用<code>task_threads</code>函数，来获取线程数量和增长速度，大量调用这个函数会造成一定的性能问题</p>
-<p>通过<code>hook</code>线程的创建和销毁，来监听线程的数量</p>
-<figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><code class="hljs arduino"><span class="hljs-comment">//在#include &lt;pthread/introspection.h&gt;文件里</span><br><span class="hljs-comment">/**</span><br><span class="hljs-comment">定义函数指针：pthread_introspection_hook_t</span><br><span class="hljs-comment">event  : 线程处于的生命周期（下面枚举了线程的4个生命周期）</span><br><span class="hljs-comment">thread ：线程</span><br><span class="hljs-comment">addr   ：线程栈内存基址</span><br><span class="hljs-comment">size   ：线程栈内存可用大小</span><br><span class="hljs-comment">*/</span><br><span class="hljs-function"><span class="hljs-keyword">typedef</span> <span class="hljs-title">void</span> <span class="hljs-params">(*<span class="hljs-type">pthread_introspection_hook_t</span>)</span><span class="hljs-params">(<span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> event,</span></span><br><span class="hljs-params"><span class="hljs-function">		<span class="hljs-type">pthread_t</span> thread, <span class="hljs-type">void</span> *addr, <span class="hljs-type">size_t</span> size)</span></span>;<br>		<br><span class="hljs-keyword">enum</span> &#123;<br>	PTHREAD_INTROSPECTION_THREAD_CREATE = <span class="hljs-number">1</span>, <span class="hljs-comment">//创建线程</span><br>	PTHREAD_INTROSPECTION_THREAD_START, <span class="hljs-comment">// 线程开始运行</span><br>	PTHREAD_INTROSPECTION_THREAD_TERMINATE,  <span class="hljs-comment">//线程运行终止</span><br>	PTHREAD_INTROSPECTION_THREAD_DESTROY, <span class="hljs-comment">//销毁线程</span><br>&#125;;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment">看这个函数名，很像我们平时hook函数一样的。</span><br><span class="hljs-comment">返回值是上面声明的pthread_introspection_hook_t函数指针：返回原线程生命周期函数。</span><br><span class="hljs-comment">参数也是函数指针：传入的是我们自定义的线程生命周期函数</span><br><span class="hljs-comment">*/</span><br>__attribute__((__nonnull__, __warn_unused_result__))<br><span class="hljs-function"><span class="hljs-keyword">extern</span> <span class="hljs-type">pthread_introspection_hook_t</span></span><br><span class="hljs-function"><span class="hljs-title">pthread_introspection_hook_install</span><span class="hljs-params">(<span class="hljs-type">pthread_introspection_hook_t</span> hook)</span></span>;<br><br></code></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><code class="hljs objective-c">JYProtocolRegister(JYLoadDelayTool,xxx)<br><br>+ (void)xxx&#123;<br>    NSLog(@&quot;123&quot;);<br>&#125;<br><br>+ (void)readDataFromMachO &#123;<br>   <br>     Dl_info info;<br>     dladdr((__bridge void *)[self class], &amp;info);<br><br>    // 读取__DATA中自定义的ProtocolInfoDataz数据<br>    #ifndef __LP64__<br>        const struct mach_header *mhp = (struct mach_header*)info.dli_fbase;<br>        unsigned long schemeSize = 0;<br>        uint32_t *schemeMemory = (uint32_t*)getsectiondata(mhp, &quot;__DATA&quot;, &quot;JYLoadDelayData&quot;, &amp;schemeSize);<br>    #else /* defined(__LP64__) */<br>        const struct mach_header_64 *mhp = (struct mach_header_64*)info.dli_fbase;<br>        unsigned long schemeSize = 0;<br>        uint64_t *schemeMemory = (uint64_t*)getsectiondata(mhp, &quot;__DATA&quot;, &quot;JYLoadDelayData&quot;, &amp;schemeSize);<br><br>    #endif /* defined(__LP64__) */<br><br>    unsigned long schemeCounter = schemeSize/sizeof(struct JYProtocolInfo);<br>    struct JYProtocolInfo *items = (struct JYProtocolInfo*)schemeMemory;<br>    for(int idx = 0; idx &lt; schemeCounter; ++idx)&#123;<br>        <br>        struct JYProtocolInfo * info = (struct JYProtocolInfo*)&amp;items[idx];<br>        <br>        Class JYClass = NSClassFromString([NSString stringWithUTF8String:info-&gt;className]);<br><br>        SEL sel = NSSelectorFromString([NSString stringWithUTF8String:info-&gt;method]);<br>        <br>        id (*func)(Class, SEL) = (id (*)(Class, SEL))objc_msgSend;<br>       <br>        func(JYClass, sel);<br>    &#125;<br>&#125;<br> <br></code></pre></td></tr></table></figure>
 
 
 
-<h4 id="下面开始写一个Monitor"><a href="#下面开始写一个Monitor" class="headerlink" title="下面开始写一个Monitor"></a>下面开始写一个<code>Monitor</code></h4><p>先来定义一些参数</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs objective-c">static pthread_introspection_hook_t original_pthread_introspection_hook_t = NULL;<br><br>/// 创建信号量<br>static dispatch_semaphore_t semaphore;<br><br>/// 线程总数<br>static int threadCount = 0;<br><br>/// 是否开启监控<br>static bool isMonitor = false;<br><br>/// 线程总数阈值<br>static int averageThreadCount = 40;<br><br>/// 线程在一定时间内新增数<br>static int newThreadCount = 0;<br><br>/// 线程在一定时间内新增阈值<br>static int newAverageThreadCount = 10;<br></code></pre></td></tr></table></figure>
-
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br></pre></td><td class="code"><pre><code class="hljs objective-c">/// 开启监控<br>+ (void)startMonitor&#123;<br>    // 创建信号量 最大并发数为1<br>    semaphore = dispatch_semaphore_create(1);<br>    // 等待<br>    dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);<br>    <br>    mach_msg_type_number_t count;<br>    thread_act_array_t threads;<br>    // 获取到count<br>    task_threads(mach_task_self(), &amp;threads, &amp;count);<br>   <br>    // 保证加锁的时候，线程数量不变<br>    threadCount = count;<br>    <br>    // 添加🪝钩子函数<br>    original_pthread_introspection_hook_t = pthread_introspection_hook_install(kry_pthread_introspection_hook_t);<br>    <br>    // 解锁 信号量+1<br>    dispatch_semaphore_signal(semaphore);<br>    <br>    // 开始监控<br>    isMonitor = true;<br>    <br>    <br>    // 开启一个定时器 检测每秒线程创建 然后通过clearNewThreadCount置位0<br>    const char *queenIdentifier = dispatch_queue_get_label(DISPATCH_CURRENT_QUEUE_LABEL);<br>    if (queenIdentifier == dispatch_queue_get_label(dispatch_get_main_queue())) &#123;<br>        [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(clearNewThreadCount) userInfo:nil repeats:YES];<br>    &#125;else&#123;<br>        dispatch_async(dispatch_get_main_queue(), ^&#123;<br>        [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(clearNewThreadCount) userInfo:nil repeats:YES];<br>        &#125;);<br>    &#125;<br>&#125;<br><br>// 当前线程总数<br>+ (int)currentThreadCount&#123;<br>    return threadCount;<br>&#125;<br><br>void kry_pthread_introspection_hook_t(unsigned int event,<br>                                      pthread_t thread, void *addr, size_t size)&#123;<br>    <br>    // 正常调用原有逻辑<br>    if (original_pthread_introspection_hook_t) &#123;<br>        original_pthread_introspection_hook_t(event,thread,addr,size);<br>    &#125;<br>    <br>    // 开始记录<br>    <br>    // 如果是创建线程,则线程的数量+1，新增数+1<br>    if (event == PTHREAD_INTROSPECTION_THREAD_CREATE) &#123;<br>        threadCount +=1;<br>        if (isMonitor &amp;&amp; threadCount &gt; averageThreadCount) &#123;<br>            // 总数 超过阈值 警告或者记录堆栈<br>            kry_Log_CallStack(false, 0);<br>        &#125;<br>        <br>        newThreadCount +=1;<br>        if (isMonitor &amp;&amp; newThreadCount &gt; newAverageThreadCount) &#123;<br>            // 新增数 超过阈值 警告或者记录堆栈<br>            kry_Log_CallStack(true, newThreadCount);<br>        &#125;<br>    &#125;<br>    <br>    <br>    // 销毁线程，则线程数量-1，新增数-1<br>    if (event == PTHREAD_INTROSPECTION_THREAD_DESTROY) &#123;<br>        threadCount -=1;<br>       <br>        if (newThreadCount &gt; 0 ) &#123;<br>            newThreadCount -=1;<br>        &#125;<br>        <br>    &#125;<br>&#125;<br><br><br>void kry_Log_CallStack(bool isIncreaseLog, int num)<br>&#123;<br>    dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);<br>    if (isIncreaseLog) &#123;<br>        printf(&quot;\n🔥一秒钟开启 %d 条线程！！！！\n&quot;, num);<br>    &#125;<br>    // 可以记录堆栈信息<br>    dispatch_semaphore_signal(semaphore);<br>&#125;<br><br>+ (void)clearNewThreadCount&#123;<br>    newThreadCount = 0;<br>&#125;<br></code></pre></td></tr></table></figure>
-
-
-
-<p>代码很简单，都有注释，近期在看PCL的堆栈记录，后期会把堆栈记录完善上去</p>
-<h3 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h3><p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/95df83780c8f">APP性能检测方案汇总</a></p>
-<p><a target="_blank" rel="noopener" href="https://juejin.cn/post/6844904122248855560">iOS线程数量监控工具</a></p>
+<p>这样，可以把一些<code>+load</code>的方法都通过指定<code>JYProtocolRegister</code>来加载，这样可以优化启动时间，另外我们APM的监控，应该是最早的，这样在APP启动后的问题都能够检测到，如果<code>load</code>里面的方法有性能问题，而APM监控却是在<code>load</code>之后，那么就会检查不到，所以一些非必要性的<code>load</code>方法可以放在APM之后加载，通过上述方式</p>
+<h4 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h4><p><a target="_blank" rel="noopener" href="https://juejin.cn/post/6980545001126101005">iOS APP 启动优化(六)：在指定的 segment 和 section 中存入数据</a></p>
+<p><a target="_blank" rel="noopener" href="https://xiaozhuanlan.com/topic/9204153876">iOS开发之runtime（12）：深入 Mach-O</a></p>
 
               
             </div>
@@ -321,7 +344,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/iOS%E6%BA%90%E7%A0%81/" class="category-chain-item">iOS源码</a>
+  <a href="/categories/iOS%E8%BF%9B%E9%98%B6/" class="category-chain-item">iOS进阶</a>
   
   
 
@@ -341,8 +364,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>iOS-线程数量监控</div>
-      <div>https://krystal1110.github.io/2021/07/01/iOS-线程数量监控/</div>
+      <div>iOS-自定义Section延迟load加载</div>
+      <div>https://krystal1110.github.io/2021/07/01/iOS-自定义Section延迟load加载/</div>
     </div>
     <div class="license-meta">
       
@@ -384,9 +407,9 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2021/08/02/iOS-%E7%BC%96%E8%AF%91%E8%BF%87%E7%A8%8B%E6%A2%B3%E7%90%86/" title="iOS-编译过程梳理">
+                      <a href="/2021/07/01/iOS-%E7%BA%BF%E7%A8%8B%E6%95%B0%E9%87%8F%E7%9B%91%E6%8E%A7/" title="iOS-线程数量监控">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">iOS-编译过程梳理</span>
+                        <span class="hidden-mobile">iOS-线程数量监控</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -394,8 +417,8 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2021/07/01/iOS-%E8%87%AA%E5%AE%9A%E4%B9%89Section%E5%BB%B6%E8%BF%9Fload%E5%8A%A0%E8%BD%BD/" title="iOS-自定义Section延迟load加载">
-                        <span class="hidden-mobile">iOS-自定义Section延迟load加载</span>
+                      <a href="/2021/06/01/iOS-%E9%80%86%E5%90%91%E9%98%B2%E6%8A%A4/" title="iOS-逆向防护">
+                        <span class="hidden-mobile">iOS-逆向防护</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
