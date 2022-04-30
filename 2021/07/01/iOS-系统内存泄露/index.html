@@ -16,22 +16,24 @@
   <meta name="author" content="JY">
   <meta name="keywords" content="">
   
-    <meta name="description" content="iOS 编译过程梳理编译语言在执行的时候，必须先通过编译器生成机器码，机器码可以直接在 CPU 上执行，所以执行效率很高。 编译器的概述编译器的作用是把我们的高级语言转换成机器可以识别的机器码，经典的设计结构如下：    前端（Frontend）：语法分析，语义分析和生成中间代码。在这个过程中，也会对代码进行检查，如果发现出错的或需要警告的会标注出来。 优化器（Optimizer）：会进行 Bit">
+    <meta name="description" content="下面是复现泄漏的测试代码，JYObject是一个没有任何多余代码的类，继承自NSObject。 12345JYObject * jyobject &#x3D; [JYObject new];for(int i &#x3D; 0; i &lt; 10000 * 1000; ++i) &amp;#123;    id value &#x3D; @&quot;JY&quot;;    [jyobject validateValue:&amp;amp">
 <meta property="og:type" content="article">
-<meta property="og:title" content="iOS-编译过程梳理">
-<meta property="og:url" content="https://krystal1110.github.io/2021/08/02/iOS-%E7%BC%96%E8%AF%91%E8%BF%87%E7%A8%8B%E6%A2%B3%E7%90%86/index.html">
+<meta property="og:title" content="iOS-系统内存泄露">
+<meta property="og:url" content="https://krystal1110.github.io/2021/07/01/iOS-%E7%B3%BB%E7%BB%9F%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/index.html">
 <meta property="og:site_name" content="JY">
-<meta property="og:description" content="iOS 编译过程梳理编译语言在执行的时候，必须先通过编译器生成机器码，机器码可以直接在 CPU 上执行，所以执行效率很高。 编译器的概述编译器的作用是把我们的高级语言转换成机器可以识别的机器码，经典的设计结构如下：    前端（Frontend）：语法分析，语义分析和生成中间代码。在这个过程中，也会对代码进行检查，如果发现出错的或需要警告的会标注出来。 优化器（Optimizer）：会进行 Bit">
+<meta property="og:description" content="下面是复现泄漏的测试代码，JYObject是一个没有任何多余代码的类，继承自NSObject。 12345JYObject * jyobject &#x3D; [JYObject new];for(int i &#x3D; 0; i &lt; 10000 * 1000; ++i) &amp;#123;    id value &#x3D; @&quot;JY&quot;;    [jyobject validateValue:&amp;amp">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://tva1.sinaimg.cn/large/e6c9d24egy1h1dwrp77ruj20ki03z0sn.jpg">
-<meta property="article:published_time" content="2021-08-02T10:23:03.000Z">
-<meta property="article:modified_time" content="2021-08-02T10:23:03.000Z">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/e6c9d24egy1h1nksnswpjj20yg06hwf7.jpg">
+<meta property="og:image" content="https://p1-jj.byteimg.com/tos-cn-i-t2oaga2asx/gold-user-assets/2018/4/17/162d197750bcc39e~tplv-t2oaga2asx-zoom-in-crop-mark:1304:0:0:0.awebp">
+<meta property="og:image" content="https://p1-jj.byteimg.com/tos-cn-i-t2oaga2asx/gold-user-assets/2018/4/17/162d197750e0badd~tplv-t2oaga2asx-zoom-in-crop-mark:1304:0:0:0.awebp">
+<meta property="article:published_time" content="2021-07-01T10:23:03.000Z">
+<meta property="article:modified_time" content="2021-07-01T10:23:03.000Z">
 <meta property="article:author" content="JY">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/e6c9d24egy1h1dwrp77ruj20ki03z0sn.jpg">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/e6c9d24egy1h1nksnswpjj20yg06hwf7.jpg">
   
   
-  <title>iOS-编译过程梳理 - JY</title>
+  <title>iOS-系统内存泄露 - JY</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -188,7 +190,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="iOS-编译过程梳理"></span>
+            <span id="subtitle" data-typed-text="iOS-系统内存泄露"></span>
           
         </div>
 
@@ -199,8 +201,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2021-08-02 18:23" pubdate>
-          2021年8月2日 晚上
+        <time datetime="2021-07-01 18:23" pubdate>
+          2021年7月1日 晚上
         </time>
       </span>
     
@@ -211,7 +213,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          1.8k 字
+          1.3k 字
         
       </span>
     
@@ -222,7 +224,7 @@
         
         
         
-          16 分钟
+          12 分钟
         
       </span>
     
@@ -268,59 +270,37 @@
         <div id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">iOS-编译过程梳理</h1>
+            <h1 style="display: none">iOS-系统内存泄露</h1>
             
             <div class="markdown-body">
               
-              <h1 id="iOS-编译过程梳理"><a href="#iOS-编译过程梳理" class="headerlink" title="iOS 编译过程梳理"></a>iOS 编译过程梳理</h1><p>编译语言在执行的时候，必须先通过编译器生成机器码，机器码可以直接在 CPU 上执行，所以执行效率很高。</p>
-<h2 id="编译器的概述"><a href="#编译器的概述" class="headerlink" title="编译器的概述"></a>编译器的概述</h2><p>编译器的作用是把我们的高级语言转换成机器可以识别的机器码，经典的设计结构如下：</p>
-<p> <img src="https://tva1.sinaimg.cn/large/e6c9d24egy1h1dwrp77ruj20ki03z0sn.jpg" srcset="/img/loading.gif" lazyload></p>
-<ul>
-<li>前端（Frontend）：语法分析，语义分析和生成中间代码。在这个过程中，也会对代码进行检查，如果发现出错的或需要警告的会标注出来。</li>
-<li>优化器（Optimizer）：会进行 BitCode 的生成，链接期优化等工作。</li>
-<li>后端（Backend）：针对不同的架构，生成对应的机器码。</li>
-</ul>
-<h2 id="Clang-LLVM-的编译过程"><a href="#Clang-LLVM-的编译过程" class="headerlink" title="Clang + LLVM 的编译过程"></a>Clang + LLVM 的编译过程</h2><ol>
-<li><strong>预处理阶段</strong>：import 头文件替换；macro 宏展开；处理预编译指令</li>
-<li><strong>词法分析</strong>：预处理完成后进入词法分析，将输入的代码转化为一系列符合特定语言的词法单元（token 流）。</li>
-<li><strong>语法分析</strong>：将词法分析得到的 token 流进行语法静态分析（Static Analysis），输出<strong>抽象语法树（AST）</strong>，过程中会校验语法是否错误。</li>
-<li><strong>CodeGen 生成 IR 中间代码</strong>：CodeGen 负责将语法树自顶向下遍历翻译成 <code>LLVM IR</code>，<code>IR</code> 是编译过程中前端的输出后端的输入。</li>
-<li><strong>Optimize 优化 IR</strong>：到这里 LLVM 会做一些优化工作，在 Xcode 的编译设置里可以设置优化级别 -01, -03, -0s，也可以写自己的 Pass，Pass 是 LLVM 优化工作的一个节点，一个节点做些事，一起加起来就构成了 LLVM 完整的优化和转化。附件：<a target="_blank" rel="noopener" href="http://llvm.org/docs/WritingAnLLVMPass.html">官方 Pass 教程</a>。</li>
-<li><strong>LLVM Bitcode 生成字节码</strong>：如果开启了 bitcode，苹果会做进一步优化。若有新的后端架构，依旧可以用这份优化过的 bitcode 去生成。</li>
-<li><strong>生成汇编</strong></li>
-<li><strong>生成目标文件</strong></li>
-<li><strong>生成可执行文件</strong></li>
+              <p>下面是复现泄漏的测试代码，<code>JYObject</code>是一个没有任何多余代码的类，继承自<code>NSObject</code>。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c++">JYObject * jyobject = [JYObject <span class="hljs-keyword">new</span>];<br><span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">10000</span> * <span class="hljs-number">1000</span>; ++i) &#123;<br>    id value = @<span class="hljs-string">&quot;JY&quot;</span>;<br>    [jyobject validateValue:&amp;value forKey:@<span class="hljs-string">&quot;notexistkey&quot;</span> error:nil];<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>当对一个没有实现校验方法的key进行<code>validateValue</code>时，就会有少量内存泄漏。如果执行很多次，结果还是很可观的。上面的代码会让内存飙到160M。</p>
+<h4 id="定位泄漏源"><a href="#定位泄漏源" class="headerlink" title="定位泄漏源"></a>定位泄漏源</h4><p>这个泄漏使用Instruments的Leaks模版可以很快的发现，但是代码却不好定位。下面是Leaks报告的泄漏截图。</p>
+<p><img src="https://tva1.sinaimg.cn/large/e6c9d24egy1h1nksnswpjj20yg06hwf7.jpg" srcset="/img/loading.gif" lazyload></p>
+<p>可以看出，泄漏发生在<code>validateValue:forKey:error:</code>，再细看右边的调用栈，可以看到这块内存是由<code>malloc</code>分配的。所以很有可能是这个系统方法内部发生了泄漏。</p>
+<p>可以看出，泄漏发生在<code>validateValue:forKey:error:</code>，再细看右边的调用栈，可以看到这块内存是由<code>malloc</code>分配的。所以很有可能是这个系统方法内部发生了泄漏。</p>
+<h4 id="使用符号断点深入观察系统方法"><a href="#使用符号断点深入观察系统方法" class="headerlink" title="使用符号断点深入观察系统方法"></a>使用符号断点深入观察系统方法</h4><p>首先使用符号断点，让程序在<code>validateValue:forKey:error:</code>处停下。</p>
+<p><img src="https://p1-jj.byteimg.com/tos-cn-i-t2oaga2asx/gold-user-assets/2018/4/17/162d197750bcc39e~tplv-t2oaga2asx-zoom-in-crop-mark:1304:0:0:0.awebp" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>运行程序，命中断点后，我们就可以观察<code>validateValue:forKey:error:</code>的汇编代码了。</p>
+<p><img src="https://p1-jj.byteimg.com/tos-cn-i-t2oaga2asx/gold-user-assets/2018/4/17/162d197750e0badd~tplv-t2oaga2asx-zoom-in-crop-mark:1304:0:0:0.awebp" srcset="/img/loading.gif" lazyload alt="img"></p>
+<h4 id="寻找Leak的内存来源"><a href="#寻找Leak的内存来源" class="headerlink" title="寻找Leak的内存来源"></a>寻找Leak的内存来源</h4><p>在汇编代码中，我发现了一个malloc调用和一个free调用。</p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs x86asm"><span class="hljs-number">0x1048272ef</span> &lt;+<span class="hljs-number">63</span>&gt;:  callq  <span class="hljs-number">0x10498b1da</span>               <span class="hljs-comment">; symbol stub for: malloc</span><br>...<br><span class="hljs-number">0x104827389</span> &lt;+<span class="hljs-number">217</span>&gt;: callq  <span class="hljs-number">0x10498b066</span>               <span class="hljs-comment">; symbol stub for: free</span><br>复制代码<br></code></pre></td></tr></table></figure>
+
+<p>通过单步调试发现，malloc出来的内存主要用来存储key，并且把首字母变成大写，应该是为了方便构成<code>validate&lt;Key&gt;:error:</code>的selector name。不过如果对象上没有校验这个key的方法，那么代码会直接jump到free调用的下二行。这样这个内存块就永远不会被释放了。</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">0x104827390</span> &lt;+<span class="hljs-number">224</span>&gt;: movb   $<span class="hljs-number">0</span>x1, %r14b<br></code></pre></td></tr></table></figure>
+
+<p>当我们给LeakObject加上notexistkey的校验方法后，单步可以发现free被调用。下面是增加的校验方法。</p>
+<figure class="highlight applescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs applescript">- (BOOL)validateNotexistkey:(<span class="hljs-built_in">id</span> *)value <span class="hljs-keyword">error</span>:(NSError **)<span class="hljs-keyword">error</span> &#123;<br><span class="hljs-built_in">    return</span> YES;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><p>这次泄漏的寻找过程，大致可以分为</p>
+<ol>
+<li>使用Instruments Leak模版初步定位</li>
+<li>使用符号断点深入泄漏方法，如果泄漏的方法不是系统或者第三方静态（动态）库的方法，就不用这么麻烦了。</li>
+<li>关注泄漏内存块的分配释放方式，在源码或者汇编代码中寻找匹配的内存块。 由于这次泄漏的仅仅是malloc内存块，所以OC的引用计数记录并不能起什么作用。</li>
 </ol>
-<h2 id="Xcode-Build-的流程"><a href="#Xcode-Build-的流程" class="headerlink" title="Xcode Build 的流程"></a>Xcode Build 的流程</h2><p>我们在 Xcode 中使用 <strong>Command + B</strong> 或 <strong>Command + R</strong> 时，即完成了一次编译，来看下这个过程做了哪些事情。</p>
-<p>编译过程分为四个步骤：</p>
-<ul>
-<li>预编译（Pre-process）：宏替换、删除注释、展开头文件，产生 .i 文件。</li>
-<li>编译（Compliling）：把前面生成的 .i 文件转化为汇编语言，产生 .s 文件。</li>
-<li>汇编（Asembly）：把汇编语言 .s 文件转化为机器码文件，产生 .0 文件。</li>
-<li>链接（Link）：对 .o 文件中的对于其他库的引用的地方进行引用，生成最后的可执行文件。也包括多个 .o 文件进行 link。</li>
-</ul>
-<p>通过解析 Xcode 编译 log，可以发现 Xcode 是根据 Target 进行编译的。我们可以通过 Xcode 中的 Build Phases、Build Settings 及 Build Rules 来控制编译过程。</p>
-<ul>
-<li>Build Settings：这一栏下是对编译的细节进行设定，包含 build 过程的每个阶段的设置选项（包含编译、链接、代码签名、打包）。</li>
-<li>Build Phases：用于控制从源文件到可执行文件的整个过程，如编译哪些文件，编译过程中执行哪些自定义脚本。例如 CocoaPods 在这里会进行相关配置。</li>
-<li>Build Rules：指定了不同的文件类型该如何编译。一般我们不需要修改这里的内容。如果需要对特定类型的文件添加处理方法，可以在这里添加规则。</li>
-</ul>
-<p>每个 Target 的具体编译过程也可以通过 log 日志获得。大致过程为：</p>
-<ul>
-<li>编译信息写入辅助文件（如Entitlements.plist），创建编译后的文件架构</li>
-<li>写入辅助信息（.hmap 文件）。将项目的文件结构对应表、将要执行的脚本、项目依赖库的文件结构对应表写成文件。</li>
-<li>运行预设的脚本。如 Cocoapods 会在 Build Phases 中预设一些脚本（CheckPods Manifest.lock）。</li>
-<li>编译 .m 文件，生成可执行文件 Mach-O。每次进行了 LLVM 的完整流程：前端（词法分析 - 语法分析 - 生成 IR）、优化器（优化 IR）、后端（生成汇编 - 生成目标文件 - 生成可执行文件）。使用 <code>CompileC</code> 和 <code>clang</code> 命令。 CompileC 是 xcodebuild 内部函数的日志记录表示形式，它是 build.log 文件中有关编译的基本信息来源。</li>
-<li>链接需要的库。如 Foundation.framework，AFNetworking.framework…</li>
-<li>拷贝资源文件到目标包</li>
-<li>编译 storyboard 文件</li>
-<li>链接 storyboard 文件</li>
-<li>编译 Asset 文件。如果使用 Asset.xcassets 来管理图片，这些图片会被编译为机器码，除了 icon 和 launchIamge。</li>
-<li>处理 infoplist</li>
-<li>执行 CocoaPods 脚本，将在编译项目前已编译好的依赖库和相关资源拷贝到包中。</li>
-<li>拷贝 Swift 标准库</li>
-<li>创建 .app 文件并对其签名</li>
-</ul>
 
               
             </div>
@@ -338,7 +318,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/iOS%E8%BF%9B%E9%98%B6/" class="category-chain-item">iOS进阶</a>
+  <a href="/categories/iOS%E6%97%A5%E5%B8%B8%E9%97%AE%E9%A2%98/" class="category-chain-item">iOS日常问题</a>
   
   
 
@@ -358,8 +338,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>iOS-编译过程梳理</div>
-      <div>https://krystal1110.github.io/2021/08/02/iOS-编译过程梳理/</div>
+      <div>iOS-系统内存泄露</div>
+      <div>https://krystal1110.github.io/2021/07/01/iOS-系统内存泄露/</div>
     </div>
     <div class="license-meta">
       
@@ -371,7 +351,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2021年8月2日</div>
+          <div>2021年7月1日</div>
         </div>
       
       
@@ -401,9 +381,9 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2021/09/01/Swift-weak%E7%9A%84%E5%AE%9E%E7%8E%B0/" title="Swift-weak的实现">
+                      <a href="/2021/07/01/iOS-%E8%87%AA%E5%AE%9A%E4%B9%89Section%E5%BB%B6%E8%BF%9Fload%E5%8A%A0%E8%BD%BD/" title="iOS-自定义Section延迟load加载">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">Swift-weak的实现</span>
+                        <span class="hidden-mobile">iOS-自定义Section延迟load加载</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -411,8 +391,8 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2021/07/01/iOS-%E7%BA%BF%E7%A8%8B%E6%95%B0%E9%87%8F%E7%9B%91%E6%8E%A7/" title="iOS-线程数量监控">
-                        <span class="hidden-mobile">iOS-线程数量监控</span>
+                      <a href="/2021/06/01/iOS-%E9%80%86%E5%90%91%E9%98%B2%E6%8A%A4/" title="iOS-逆向防护">
+                        <span class="hidden-mobile">iOS-逆向防护</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

@@ -20,7 +20,7 @@
 <meta property="og:type" content="article">
 <meta property="og:title" content="Swift-weak的实现">
 <meta property="og:url" content="https://krystal1110.github.io/2021/09/01/Swift-weak%E7%9A%84%E5%AE%9E%E7%8E%B0/index.html">
-<meta property="og:site_name" content="Hexo">
+<meta property="og:site_name" content="JY">
 <meta property="og:description" content="在Swift中, SideTable 是针对有需要的对象而创建，系统会为目标对象分配一块新的内存来保存该对象额外的信息。 因为这不是对象必须的内容，所以这个 SideTable 可有可无。对象会有一个指向 SideTable 的指针，同时 SideTable 也有一个指回原对象的指针。在实现上为了不额外多占用内存，目前只有在创建弱引用时，会先把对象的引用计数放到新创建的 SideTable 去，再">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://gitee.com/zhangferry/Images/raw/master/iOSWeeklyLearning/20220302155825.png">
@@ -31,7 +31,7 @@
 <meta name="twitter:image" content="https://gitee.com/zhangferry/Images/raw/master/iOSWeeklyLearning/20220302155825.png">
   
   
-  <title>Swift-weak的实现 - Hexo</title>
+  <title>Swift-weak的实现 - JY</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
