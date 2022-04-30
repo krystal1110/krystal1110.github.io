@@ -217,7 +217,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          6.2k 字
+          6.6k 字
         
       </span>
     
@@ -228,7 +228,7 @@
         
         
         
-          52 分钟
+          56 分钟
         
       </span>
     
@@ -291,9 +291,9 @@
 </ul>
 <h4 id="虚拟内存"><a href="#虚拟内存" class="headerlink" title="虚拟内存"></a>虚拟内存</h4><p>虚拟内存就是一层间接寻址（indirection），虚拟内存解决的是管理所有进程使用物理 RAM 的问题。通过添加间接层来让每个进程使用逻辑地址空间，它可以映射到 RAM 上的某个物理页上。这种映射不是一对一的，逻辑地址可能映射不到 RAM 上，也可能有多个逻辑地址映射到同一个物理 RAM 上。针对第一种情况，当进程要存储逻辑地址内容时会触发 page fault；第二种情况就是多进程共享内存。</p>
 <p>page fault 会阻塞该进程，将磁盘中对应<code>Page</code>的数据加载到内存，把虚拟内存指向物理内存</p>
-<p><strong><font color="#EA7500">对于文件可以不用一次性读入整个文件，可以使用分页映射（<code>mmap()</code>）的方式读取。也就是把文件某个片段映射到进程逻辑内存的某个页上。当某个想要读取的页没有在内存中，就会触发 page fault，内核只会读入那一页，实现文件的懒加载。</font></strong>  </p>
+<p><strong><font color="#EA7500">对于文件可以不用一次性读入整个文件，可以使用分页映射（<code>mmap()</code>）的方式读取。也就是把文件某个片段映射到进程逻辑内存的某个页上。当某个想要读取的页没有在内存中，就会触发 page fault，内核只会读入那一页，实现文件的懒加载。</font></strong>    </p>
 <p>**<font color="#EA7500">也就是说 Mach-O 文件中的 <code>__TEXT</code> 段可以映射到多个进程，并可以懒加载，且进程之间共享内存。 </font>  **</p>
-<p><code>__DATA</code> 段是可读写的。**<font color="#EA7500">这里使用到了 Copy-On-Write 技术，简称 COW。也就是多个进程共享一页内存空间时，一旦有进程要做写操作，它会先将这页内存内容复制一份出来，然后重新映射逻辑地址到新的 RAM 页上。</font>**  </p>
+<p><strong><font color="#EA7500"><code>__DATA</code> 段是可读写的。 这里使用到了 Copy-On-Write 技术，简称 COW。也就是多个进程共享一页内存空间时，一旦有进程要做写操作，它会先将这页内存内容复制一份出来，然后重新映射逻辑地址到新的 RAM 页上。</font></strong>  </p>
 <p>也就是这个进程自己拥有了那页内存的拷贝。这就涉及到了 clean&#x2F;dirty page 的概念。dirty page 含有进程自己的信息，而 clean page 可以被内核重新生成（重新读磁盘）。所以 dirty page 的代价大于 clean page。</p>
 <p><strong><font color="#EA7500"><code>dirty page</code> ：使用中的物理内存块如果不交换到硬盘保存状态就不能复用，那么就是<code>Dirty</code>的内存块，比如你主动<code>malloc</code>出来的内存块，如果不保留其中的状态就把它给别人用，那你肯定就无法恢复这个内存块的信息，所以它是<code>Dirty</code>的。</font></strong>  </p>
 <p><strong><font color="#EA7500"><code>clean page</code>： 如果是一个映射到内存的文件，就算使用它的内存块，还是可以重新从磁盘载入文件到内存的，所以是非Dirty的。</font></strong>  </p>
@@ -402,8 +402,7 @@
 <li><code>__objc_nlclslist</code>，实现+load 的类</li>
 <li><code>__objc_nlcatlist</code>，实现+load 的 Category</li>
 </ul>
-<p>load方法耗时吗？</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs C++">+ (<span class="hljs-type">void</span>)load <br>&#123;<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;1234&quot;</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+<h5 id="load方法耗时吗？"><a href="#load方法耗时吗？" class="headerlink" title="load方法耗时吗？"></a>load方法耗时吗？</h5><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs C++">+ (<span class="hljs-type">void</span>)load <br>&#123;<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;1234&quot;</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
 
 
 
@@ -415,6 +414,11 @@
 <li><code>static class object</code></li>
 <li><code>static object in global namespace</code></li>
 </ul>
+<p><strong><font color="#EA7500">并不是所有的<code>static</code>变量都会产生静态初始化，如果你开启了编译优化，对于在编译期就能确定的变量，编译器会直接将变量<code>inline</code></font></strong>  </p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-comment">//会产生静态初始化</span><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">Demo</span>&#123; <br><span class="hljs-type">static</span> <span class="hljs-type">const</span> std::string var_1; <br>&#125;;<br><span class="hljs-type">const</span> std::string var_2 = <span class="hljs-string">&quot;1234&quot;</span>; <br><span class="hljs-type">static</span> Logger logger;<br><span class="hljs-comment">//不会产生静态初始化</span><br><span class="hljs-type">static</span> <span class="hljs-type">const</span> <span class="hljs-type">int</span> var_3 = <span class="hljs-number">4</span>; <br><span class="hljs-type">static</span> <span class="hljs-type">const</span> <span class="hljs-type">char</span> * var_4 = <span class="hljs-string">&quot;1234&quot;</span>;<br></code></pre></td></tr></table></figure>
+
+
+
 <h4 id="UIKit-Init"><a href="#UIKit-Init" class="headerlink" title="UIKit Init"></a>UIKit Init</h4><p>当<code>+load</code>和<code>static initializer</code>执行完毕以后，开始执行<code>main</code>函数，<code>main</code>函数中会初始化<code>UIKit</code></p>
 <ul>
 <li>UIKit<ul>
@@ -424,6 +428,9 @@
 </li>
 </ul>
 <p><strong><font color="#EA7500">由于主线程的 <code>dispatch_async</code> 是基于 runloop 的，所以在+load 里如果调用了 <code>dispatch_async </code>会在这个阶段执行</font></strong>  </p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs C++">+(<span class="hljs-type">void</span>)load&#123;<br>    <span class="hljs-built_in">dispatch_async</span>(<span class="hljs-built_in">dispatch_get_global_queue</span>(<span class="hljs-number">0</span>, <span class="hljs-number">0</span>), ^&#123;<br>        <span class="hljs-comment">// 耗时的操作</span><br>        <span class="hljs-built_in">NSLog</span>(@<span class="hljs-string">&quot;123&quot;</span>);<br>    &#125;);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>上面的<code> NSLog(@&quot;123&quot;)</code>函数则是在<code>main</code>函数中启动主线程<code>Runloop</code>之后执行 </p>
 <h4 id="Runloop"><a href="#Runloop" class="headerlink" title="Runloop"></a>Runloop</h4><p><code>runloop</code>实际是一个<code>do while</code>循环，与启动有什么关系？</p>
 <ul>
 <li><strong><font color="#EA7500">App 的 <code>LifeCycle</code> 方法是基于 Runloop 的 Source0 的</font></strong></li>
@@ -434,7 +441,7 @@
 <blockquote>
 <p><code>LifeCycle</code> 是指<code>finishLaunch</code>开始 ~ <code>finishLaunch</code>结束</p>
 </blockquote>
-<h4 id="AppLifeCycle"><a href="#AppLifeCycle" class="headerlink" title="AppLifeCycle"></a>AppLifeCycle</h4><p>UIKit 初始化之后，就进入了我们熟悉的 UIApplicationDelegate 回调了，在这些会调里去做一些业务上的初始化：</p>
+<h3 id="AppLifeCycle"><a href="#AppLifeCycle" class="headerlink" title="AppLifeCycle"></a>AppLifeCycle</h3><p>UIKit 初始化之后，就进入了我们熟悉的 <code>UIApplicationDelegate</code> 回调了，在这些会调里去做一些业务上的初始化：</p>
 <ul>
 <li><code>willFinishLaunch</code></li>
 <li><code>didFinishLaunch</code></li>
@@ -442,7 +449,7 @@
 </ul>
 <p>要特别提一下 <code>didFinishLaunchNotification</code>，是因为大家在埋点的时候通常会忽略还有这个通知的存在，导致把这部分时间算到 UI 渲染里。</p>
 <h4 id="First-Frame-Render"><a href="#First-Frame-Render" class="headerlink" title="First Frame Render"></a>First Frame Render</h4><p>一般会已<code>rootController</code>的<code>viewDidApper</code>作为渲染的终点</p>
-<p>Apple在MetricsKit里对启动终点定义是第一个<code>CA::Transaction::commit()</code></p>
+<p><code>Apple</code>在<code>MetricsKit</code>里对启动终点定义是第一个<code>CA::Transaction::commit()</code></p>
 <p><img src="https://tva1.sinaimg.cn/large/e6c9d24egy1h1s684rkcsj210805adg1.jpg" srcset="/img/loading.gif" lazyload></p>
 <blockquote>
 <p>iOS 的渲染是在一个单独的进程 <code>RenderServer</code> 做的，App 会把 <code>Render Tree</code> 编码打包给 <code>RenderServer</code>，<code>RenderServer</code> 再调用渲染框架(Metal&#x2F;OpenGL ES)来生成 <code>bitmap</code>，放到帧缓冲区里，硬件根据时钟信号读取帧缓冲区内容，完成屏幕刷新。<code>CATransaction</code> 就是把一组 UI 上的修改，合并成一个事务，通过 <code>commit</code> 提交。</p>
@@ -468,7 +475,7 @@
 </ul>
 </li>
 </ul>
-<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><p><img src="https://tva1.sinaimg.cn/large/e6c9d24egy1h1s6efvz5gj210809ygmh.jpg" srcset="/img/loading.gif" lazyload></p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p><img src="https://tva1.sinaimg.cn/large/e6c9d24egy1h1s6efvz5gj210809ygmh.jpg" srcset="/img/loading.gif" lazyload></p>
 <h6 id="APP的整个启动流程"><a href="#APP的整个启动流程" class="headerlink" title="APP的整个启动流程"></a>APP的整个启动流程</h6><ol>
 <li><p><strong><font color="#EA7500">点击图标，创建进程</font></strong>  </p>
 </li>
