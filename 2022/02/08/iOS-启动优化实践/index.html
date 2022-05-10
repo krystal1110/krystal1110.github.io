@@ -1,0 +1,955 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="JY">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="监控启动埋点启动终点记录方案  iOS 12 及以下：root viewController 的 viewDidAppear iOS 13+：applicationDidBecomeActive  分阶段埋点 +load、initializer的调用顺序和链接顺序有关，链接顺序又是按照 cocopods的 pod 命名升序排列，所以取一个命名为 AAA 开头的 pod ，可以让+load以及 in">
+<meta property="og:type" content="article">
+<meta property="og:title" content="iOS-启动优化">
+<meta property="og:url" content="https://krystal1110.github.io/2022/02/08/iOS-%E5%90%AF%E5%8A%A8%E4%BC%98%E5%8C%96%E5%AE%9E%E8%B7%B5/index.html">
+<meta property="og:site_name" content="JY">
+<meta property="og:description" content="监控启动埋点启动终点记录方案  iOS 12 及以下：root viewController 的 viewDidAppear iOS 13+：applicationDidBecomeActive  分阶段埋点 +load、initializer的调用顺序和链接顺序有关，链接顺序又是按照 cocopods的 pod 命名升序排列，所以取一个命名为 AAA 开头的 pod ，可以让+load以及 in">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/e6c9d24egy1h1spfcisjuj21080dhmxy.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/e6c9d24egy1h1spp21exjj20t3059t8v.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/e6c9d24egy1h1tbziz0g5j21080lhdhq.jpg">
+<meta property="og:image" content="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/8635a869aa06443c9ff91ecafb09d024~tplv-k3u1fbpfcp-zoom-in-crop-mark:1304:0:0:0.awebp">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/e6c9d24egy1h1tvc3xt5ij20u20h8769.jpg">
+<meta property="og:image" content="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/abe2e95368914aabbd06594917b16a4c~tplv-k3u1fbpfcp-zoom-in-crop-mark:1304:0:0:0.awebp">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/e6c9d24egy1h1ufro38k8j210802yt8x.jpg">
+<meta property="og:image" content="https://tva1.sinaimg.cn/large/e6c9d24egy1h1v540rn8ij21080arq3p.jpg">
+<meta property="og:image" content="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/80b153b8b17848bda954cab6cb9ae93d~tplv-k3u1fbpfcp-zoom-in-crop-mark:1304:0:0:0.awebp">
+<meta property="og:image" content="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/5fdb6f6a52b146ed868a51824553b681~tplv-k3u1fbpfcp-zoom-in-crop-mark:1304:0:0:0.awebp">
+<meta property="article:published_time" content="2022-02-08T10:23:03.000Z">
+<meta property="article:modified_time" content="2022-02-08T10:23:03.000Z">
+<meta property="article:author" content="JY">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tva1.sinaimg.cn/large/e6c9d24egy1h1spfcisjuj21080dhmxy.jpg">
+  
+  
+  <title>iOS-启动优化 - JY</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"krystal1110.github.io","root":"/","version":"1.8.14","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"cgyQocXcH1Lfzt5rxclmf892-gzGzoHsz","app_key":"8u61JSryGOloGGDp4xFV1oaM","server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+
+  
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>JY</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/logo.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="iOS-启动优化"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2022-02-08 18:23" pubdate>
+          2022年2月8日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          8.8k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          74 分钟
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="leancloud-page-views"></span> 次
+        </span>
+        
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">iOS-启动优化</h1>
+            
+            <div class="markdown-body">
+              
+              <h3 id="监控"><a href="#监控" class="headerlink" title="监控"></a>监控</h3><h4 id="启动埋点"><a href="#启动埋点" class="headerlink" title="启动埋点"></a>启动埋点</h4><p>启动终点记录方案</p>
+<ul>
+<li>iOS 12 及以下：root viewController 的 viewDidAppear</li>
+<li>iOS 13+：applicationDidBecomeActive</li>
+</ul>
+<h5 id="分阶段埋点"><a href="#分阶段埋点" class="headerlink" title="分阶段埋点"></a>分阶段埋点</h5><p><img src="https://tva1.sinaimg.cn/large/e6c9d24egy1h1spfcisjuj21080dhmxy.jpg" srcset="/img/loading.gif" lazyload></p>
+<p><code>+load</code>、<code>initializer</code>的调用顺序和链接顺序有关，链接顺序又是按照 cocopods的 pod 命名升序排列，所以取一个命名为 AAA 开头的 pod ，可以让<code>+load</code>以及 <code>initializer</code> 第一个被执行</p>
+<p>需要记录的点有: </p>
+<ul>
+<li>进程创建的时间<ul>
+<li>通过 <code>sysctl</code> 系统调用拿到进程创建的时间戳</li>
+</ul>
+</li>
+<li>第一个+load&#x2F;第一个initializer<ul>
+<li>通过 AAA 为前缀命名 Pod，让 +load 第一个被执行</li>
+</ul>
+</li>
+<li>main开始</li>
+<li>finishLaunch开始<ul>
+<li>一般<code>didFinishLaunching</code>当中优先应该执行监控APM，所以用监控APM的初始化时间作为开始</li>
+</ul>
+</li>
+<li>finishLaunch结束<ul>
+<li>当方法执行完毕记录</li>
+</ul>
+</li>
+<li>启动埋点<ul>
+<li>获取<code>CA::Transaction::commit()</code>方法被调用的时间</li>
+</ul>
+</li>
+</ul>
+<p><strong><code>CA::Transaction::commit()</code>是通过 Runloop 来驱动的，依次的时机为</strong></p>
+<p><img src="https://tva1.sinaimg.cn/large/e6c9d24egy1h1spp21exjj20t3059t8v.jpg" srcset="/img/loading.gif" lazyload></p>
+<p>可以通过在 <code>didFinishLaunching</code> 中向 Runloop 注册 block 或者 BeforeTimer 的 Observer 来获取上图中两个时间点的回调 </p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-keyword">if</span> (@<span class="hljs-built_in">available</span>(iOS <span class="hljs-number">13.0</span>, *)) &#123;<br><span class="hljs-comment">//注册kCFRunLoopBeforeTimers回调</span><br>CFRunLoopRef mainRunloop = [[NSRunLoop mainRunLoop] getCFRunLoop];<br>CFRunLoopActivity activities = kCFRunLoopAllActivities;<br>CFRunLoopObserverRef observer = <span class="hljs-built_in">CFRunLoopObserverCreateWithHandler</span>(kCFAllocatorDefault, activities, YES, <span class="hljs-number">0</span>, ^(CFRunLoopObserverRef observer, CFRunLoopActivity activity) &#123;<br>    <span class="hljs-keyword">if</span> (activity == kCFRunLoopBeforeTimers) &#123;<br>        NSTimeInterval stamp = [[NSDate date] timeIntervalSince1970];<br>        <span class="hljs-built_in">NSLog</span>(@<span class="hljs-string">&quot;runloop beforetimers launch end:%f &quot;</span>,stamp);<br>        <span class="hljs-built_in">CFRunLoopRemoveObserver</span>(mainRunloop, observer, kCFRunLoopCommonModes);<br>    &#125;<br>&#125;);<br>   <br><span class="hljs-built_in">CFRunLoopAddObserver</span>(mainRunloop, observer, kCFRunLoopCommonModes);<br><br>&#125;<span class="hljs-keyword">else</span>&#123;<br>    <span class="hljs-comment">// 注册block的方式获取</span><br>    CFRunLoopRef mainBlockRunloop = [[NSRunLoop mainRunLoop] getCFRunLoop];<br>    <span class="hljs-built_in">CFRunLoopPerformBlock</span>(mainBlockRunloop,NSDefaultRunLoopMode,^()&#123;<br>        NSTimeInterval stamp = [[NSDate date] timeIntervalSince1970];<br>        <span class="hljs-built_in">NSLog</span>(@<span class="hljs-string">&quot;runloop block launch end:%f &quot;</span>,stamp);<br>    &#125;);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<h4 id="获取首屏渲染的方案"><a href="#获取首屏渲染的方案" class="headerlink" title="获取首屏渲染的方案"></a><strong>获取首屏渲染的方案</strong></h4><p>**<font color="#EA7500">iOS13（含）以上的系统采用 <code>runloop</code> 中注册一个 <code>kCFRunLoopBeforeTimers</code> 的回调获取到的 App 首屏渲染完成的时机更准确。</font>  **</p>
+<p>**<font color="#EA7500">iOS13 以下的系统采用 <code>CFRunLoopPerformBlock</code> 方法注入 block 获取到的 App 首屏渲染完成的时机更准确。</font>  **</p>
+<h4 id="测试阶段"><a href="#测试阶段" class="headerlink" title="测试阶段"></a>测试阶段</h4><p>如何保证测试数据的准确性，通过控制变量的方式：</p>
+<ul>
+<li>关闭 iCloud &amp; 不登录 AppleID &amp; 飞行模式</li>
+<li>风扇降温，且用 MFI 认证数据线</li>
+<li>重启手机和开始下一次测试之前静置一段时间</li>
+<li>多次测量取平均值 &amp; 计算方差</li>
+<li>Mock 启动过程中的 AB 变量</li>
+</ul>
+<p>防止启动劣化，可以做以下准入条件</p>
+<ul>
+<li><p>新增动态库</p>
+</li>
+<li><p>新增+load和静态初始化</p>
+</li>
+<li><p>新增启动任务</p>
+</li>
+</ul>
+<p>上述都可以在 <code>git</code> 提交时，写脚本进行检测，最后<code>Code Review</code></p>
+<p> <code>Xcode MetricKit</code> 本身也可以看到启动耗时：打开 Xcode -&gt; Window -&gt; Origanizer -&gt; Launch Time</p>
+<h4 id="数据统计"><a href="#数据统计" class="headerlink" title="数据统计"></a>数据统计</h4><h5 id="当我们做数据统计的时候，需要注意的点是"><a href="#当我们做数据统计的时候，需要注意的点是" class="headerlink" title="当我们做数据统计的时候，需要注意的点是"></a>当我们做数据统计的时候，需要注意的点是</h5><ul>
+<li><p>**<font color="#EA7500">发版本的前几天启动速度会变慢，这是因为iOS13之后更新APP的第一次启动需要创建启动闭包，这个过程比较慢，之后就会有缓存了，所以我们需要判断APP更新过后是不是第一次启动</font>  **</p>
+</li>
+<li><p>统计启动时间的时候，需要把手机型号，系统也一定统计进去</p>
+</li>
+</ul>
+<h3 id="找出耗时点"><a href="#找出耗时点" class="headerlink" title="找出耗时点"></a>找出耗时点</h3><h4 id="Time-Profiler"><a href="#Time-Profiler" class="headerlink" title="Time Profiler"></a>Time Profiler</h4><p>**<font color="#EA7500">默认 Time Profiler 会 1ms 采样一次，只采集在运行线程的调用栈，最后以统计学的方式汇总。比如下图中的 5 次采样中，method3 都没有采样到，所以最后聚合到的栈里就看不到 method3。所以 Time Profiler 中的看到的时间，并不是代码实际执行的时间，而是栈在采样统计中出现的时间。</font>  **</p>
+<p><img src="https://tva1.sinaimg.cn/large/e6c9d24egy1h1tbziz0g5j21080lhdhq.jpg" srcset="/img/loading.gif" lazyload></p>
+<p>Time Profiler 支持一些额外的配置，<strong>如果统计出来的时间和实际的时间相差比较多，可以尝试开启</strong>：</p>
+<ul>
+<li>High Frequency，降低采样的时间间隔</li>
+<li>Record Kernel Callstacks，记录内核的调用栈</li>
+<li>Record Waiting Thread，记录被 block 的线程</li>
+</ul>
+<h4 id="System-Trace"><a href="#System-Trace" class="headerlink" title="System Trace"></a>System Trace</h4><p><img src="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/8635a869aa06443c9ff91ecafb09d024~tplv-k3u1fbpfcp-zoom-in-crop-mark:1304:0:0:0.awebp" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>既然要精细化分析，那么我们就需要标记出一小段时间，可以用 Point of interest 来标记。除此之外，System Trace 分析虚拟内存和线程状态都很管用：</p>
+<ul>
+<li>Virtual Memory：<strong>主要关注 Page In</strong>这个事件，因为启动路径上有很多次 Page In，且相对耗时</li>
+<li>Thread State：<strong>主要关注挂起和抢占两个状态，记住主线程不是一直在运行的</strong></li>
+<li>System Load 线程有优先级，高优先级的线程不应该超过系统核心数量</li>
+</ul>
+<h4 id="os-signpost"><a href="#os-signpost" class="headerlink" title="os_signpost"></a>os_signpost</h4><p>os_signpost 是 iOS 12 推出的用于在 instruments 里标记时间段的 API，性能非常高，可以认为对启动无影响。结合最开始讲的分阶段监控，我们可以在 Instrument 把启动划分成多个阶段，和其他模板一起分析具体问题：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-comment">//耗时统计</span><br>- (<span class="hljs-type">void</span>)viewDidAppear:(BOOL)animated &#123;<br>    <span class="hljs-comment">/*</span><br><span class="hljs-comment">     统计这段区间的执行次数,耗时,等等,更加直观</span><br><span class="hljs-comment">     SP_BEGIN_LOG(systemname, category, name);</span><br><span class="hljs-comment">     systemname:自定义,可以用bundleId</span><br><span class="hljs-comment">     category:在timeprofile中统计分类时使用,相同的扼categroy在同一个分类下</span><br><span class="hljs-comment">     name:具体统计名称</span><br><span class="hljs-comment">     */</span><br>    <span class="hljs-built_in">SP_BEGIN_LOG</span>(custome, gl_log, viewDidAppear);<br>    [super viewDidAppear:animated];<br>    [NSThread sleepForTimeInterval:<span class="hljs-number">2</span>];<br>    <span class="hljs-built_in">NSLog</span>(@<span class="hljs-string">&quot;viewDidAppear&quot;</span>);<br>    <span class="hljs-built_in">SP_END_LOG</span>(viewDidAppear);<br>    <br>    <br>    <span class="hljs-type">os_log_t</span> m_log = <span class="hljs-built_in">os_log_create</span>(<span class="hljs-string">&quot;custome&quot;</span>, <span class="hljs-string">&quot;gl_log&quot;</span>);\<br>    <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">10</span>; i++) &#123;<br>        <span class="hljs-type">os_signpost_id_t</span> signid_1 = <span class="hljs-built_in">os_signpost_id_generate</span>(m_log);<br>        <span class="hljs-built_in">os_signpost_interval_begin</span>(m_log, signid_1, <span class="hljs-string">&quot;asynctest&quot;</span>);<br>        <span class="hljs-built_in">dispatch_async</span>(<span class="hljs-built_in">dispatch_get_global_queue</span>(DISPATCH_QUEUE_PRIORITY_DEFAULT, <span class="hljs-number">0</span>), ^&#123;<br>            <span class="hljs-built_in">NSLog</span>(@<span class="hljs-string">&quot;打印的第%d遍&quot;</span>,i);<br>            <span class="hljs-built_in">os_signpost_interval_end</span>(m_log, signid_1, <span class="hljs-string">&quot;asynctest&quot;</span>, <span class="hljs-string">&quot;index%d&quot;</span>,i);<br>        &#125;);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+
+
+<p><img src="https://tva1.sinaimg.cn/large/e6c9d24egy1h1tvc3xt5ij20u20h8769.jpg" srcset="/img/loading.gif" lazyload></p>
+<p>这边因为我在<code>viewDidAppear</code>中设置了睡眠2s，所以上图中时间是2.00s</p>
+<p>其实我for循环了10次，也就是打印了10次<code>asynctest</code>，最后的count为10</p>
+<p>**<font color="#EA7500">我们可以结合swizzle，os_signpost来达到统计的效果，hook所有的load方法，来分析启动时所有load的耗时，hook所有的UIImage加载方法，来统计启动路径上用到的图片加载耗时时间</font>  **</p>
+<h3 id="实践"><a href="#实践" class="headerlink" title="实践"></a>实践</h3><p><img src="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/abe2e95368914aabbd06594917b16a4c~tplv-k3u1fbpfcp-zoom-in-crop-mark:1304:0:0:0.awebp" srcset="/img/loading.gif" lazyload alt="img"></p>
+<ol>
+<li><strong>删</strong>掉启动项，最直接</li>
+<li>如果不能删除，尝试<strong>延迟</strong>，延迟包括第一次访问以及启动结束后找个合适的时间预热</li>
+<li>不能延迟的可以尝试<strong>并发</strong>，利用好多核多线程</li>
+<li>如果并发也不行，可以尝试让代码执行<strong>更快</strong></li>
+</ol>
+<h4 id="man函数之前"><a href="#man函数之前" class="headerlink" title="man函数之前"></a>man函数之前</h4><p>我们来回顾一下 main 函数之前做了什么事情</p>
+<ul>
+<li>加载 dyld</li>
+<li>创建启动闭包（更新 App&#x2F;重启手机需要）</li>
+<li>加载动态库</li>
+<li>Bind &amp; Rebase &amp; Runtime 初始化</li>
+<li>+load 和静态初始化</li>
+</ul>
+<p><img src="https://tva1.sinaimg.cn/large/e6c9d24egy1h1ufro38k8j210802yt8x.jpg" srcset="/img/loading.gif" lazyload></p>
+<h5 id="动态库"><a href="#动态库" class="headerlink" title="动态库"></a>动态库</h5><p>减少动态库数量可以减少启动闭包创建和加载动态库阶段的耗时</p>
+<p>推荐的方案</p>
+<ul>
+<li>动态库转静态库</li>
+<li>非必要动态库转为懒加载形式</li>
+</ul>
+<h5 id="无用代码检测"><a href="#无用代码检测" class="headerlink" title="无用代码检测"></a>无用代码检测</h5><p>基于 Mach-O 的静态扫描</p>
+<ul>
+<li><code>_objc_selrefs</code> 和<code>_objc_classrefs</code> 存储了引用到的 sel 和 class</li>
+<li><code>__objc_classlist</code> 存储了所有的 sel 和 class</li>
+</ul>
+<p>二者做个差集就知道那些类&#x2F;sel 用不到，但<strong>objc 支持运行时调用，删除之前还要在二次确认</strong></p>
+<h5 id="load-方法迁移"><a href="#load-方法迁移" class="headerlink" title="+load 方法迁移"></a>+load 方法迁移</h5><p><strong>+load 除了方法本身的耗时，还会引起大量 Page In</strong>，另外 +load 的存在对 App 稳定性也是冲击，因为 Crash 了捕获不到。</p>
+<p>例如一些非必要执行的方法，可以放到main之后执行的，可以延迟执行</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-keyword">struct</span> <span class="hljs-title class_">JYProtocolInfo</span>&#123;<br>    <span class="hljs-type">char</span> *className;<br>    <span class="hljs-type">char</span> *method;<br>&#125;;<br><br> <br><span class="hljs-meta">#<span class="hljs-keyword">define</span> JYProtocolRegister(_className_,_method_)\</span><br><span class="hljs-meta">__attribute__((used)) static struct JYProtocolInfo JYProtocolInfo##_className_ \</span><br><span class="hljs-meta">__attribute__ ((used, section (<span class="hljs-string">&quot;__DATA,JYLoadDelayData&quot;</span>))) =\</span><br><span class="hljs-meta">&#123;\</span><br><span class="hljs-meta">    .className = #_className_,\</span><br><span class="hljs-meta">    .method = #_method_,\</span><br><span class="hljs-meta">&#125;;</span><br></code></pre></td></tr></table></figure>
+
+<p><strong>宏提供接口，编译期把类名和方法名写到二进制的指定段里，运行时把这个关系读出来就可以通过objc_msgSend调用了</strong></p>
+<p>DI 的容器需要把协议绑定到类，所以需要在启动的早期(+load)里注册</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs C++">+ (<span class="hljs-type">void</span>)load<br>&#123;<br>    [DICenter bindClass:IMPClass toProtocol:@<span class="hljs-built_in">protocol</span>(SomeProcotol)]<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+
+
+<p>我们可以通过<strong>宏提供接口，编译期把类名和协议名写到二进制的指定段里，运行时把这个关系读出来就知道协议是绑定到哪个类了</strong></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-keyword">typedef</span> <span class="hljs-keyword">struct</span>&#123;<br>    <span class="hljs-type">const</span> <span class="hljs-type">char</span> * cls;<br>    <span class="hljs-type">const</span> <span class="hljs-type">char</span> * protocol;<br>&#125;_di_pair;<br><br><span class="hljs-comment">// _DI_VALID_METHOD 这个方法只在 debug 模式下存在，为了让编译器保证类型安全。</span><br><span class="hljs-meta">#<span class="hljs-keyword">if</span> DEBUG</span><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> DI_SERVICE(PROTOCOL_NAME,CLASS_NAME)\</span><br><span class="hljs-meta">__used static Class<span class="hljs-string">&lt;PROTOCOL_NAME&gt;</span> _DI_VALID_METHOD(void)&#123;\</span><br><span class="hljs-meta">    return [CLASS_NAME class];\</span><br><span class="hljs-meta">&#125;\</span><br><span class="hljs-meta">__attribute((used, section(_DI_SEGMENT <span class="hljs-string">&quot;,&quot;</span> _DI_SECTION ))) static _di_pair _DI_UNIQUE_VAR = \</span><br><span class="hljs-meta">&#123;\</span><br><span class="hljs-meta">_TO_STRING(CLASS_NAME),\</span><br><span class="hljs-meta">_TO_STRING(PROTOCOL_NAME),\</span><br><span class="hljs-meta">&#125;;\</span><br><span class="hljs-meta">#<span class="hljs-keyword">else</span></span><br>__attribute((used, <span class="hljs-built_in">section</span>(_DI_SEGMENT <span class="hljs-string">&quot;,&quot;</span> _DI_SECTION ))) <span class="hljs-type">static</span> _di_pair _DI_UNIQUE_VAR = \<br>&#123;\<br>_TO_STRING(CLASS_NAME),\<br>_TO_STRING(PROTOCOL_NAME),\<br>&#125;;\<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br></code></pre></td></tr></table></figure>
+
+
+
+<h5 id="静态初始化迁移"><a href="#静态初始化迁移" class="headerlink" title="静态初始化迁移"></a>静态初始化迁移</h5><p>大多数静态初始化引起的 Page In，一般来自 C++ 代码</p>
+<p>迁移思路：</p>
+<ul>
+<li>std:string 转换成 const char *</li>
+<li>静态变量移动到方法内部，因为方法内部的静态变量会在方法第一次调用的时候初始化</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-comment">//Bad</span><br><span class="hljs-keyword">namespace</span> &#123;<br>    <span class="hljs-type">static</span> <span class="hljs-type">const</span> std::string bucket[] = &#123;<span class="hljs-string">&quot;apples&quot;</span>, <span class="hljs-string">&quot;pears&quot;</span>, <span class="hljs-string">&quot;meerkats&quot;</span>&#125;;<br>&#125;<br><span class="hljs-function"><span class="hljs-type">const</span> std::string <span class="hljs-title">GetBucketThing</span><span class="hljs-params">(<span class="hljs-type">int</span> i)</span> </span>&#123;<br>     <span class="hljs-keyword">return</span> bucket[i];<br>&#125;<br><br><span class="hljs-comment">//Good</span><br><span class="hljs-function">std::string <span class="hljs-title">GetBucketThing</span><span class="hljs-params">(<span class="hljs-type">int</span> i)</span> </span>&#123;<br>  <span class="hljs-type">static</span> <span class="hljs-type">const</span> std::string bucket[] = &#123;<span class="hljs-string">&quot;apples&quot;</span>, <span class="hljs-string">&quot;pears&quot;</span>, <span class="hljs-string">&quot;meerkats&quot;</span>&#125;;<br>  <span class="hljs-keyword">return</span> bucket[i];<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<h4 id="Main函数之后"><a href="#Main函数之后" class="headerlink" title="Main函数之后"></a>Main函数之后</h4><p>最好需要一个启动器来管理启动项，所以的业务仓库需要实现启动器的协议来表明这是个启动任务，里面会有启动任务的顺序和执行线程</p>
+<ul>
+<li><p><strong>全局并发调度</strong>：比如 AB 任务并发，C 任务等待 AB 执行完毕，框架调度还能减少线程数量和控制优先级</p>
+</li>
+<li><p><strong>延迟执行</strong>：提供一些时机，业务可以做预热性质的初始化</p>
+</li>
+<li><p><strong>精细化监控</strong>：所有任务的耗时都能监控到，线下自动化监控也能受益</p>
+</li>
+<li><p><strong>管控</strong>：启动任务的顺序调整，新增&#x2F;删除都能通过 Code Review 管控</p>
+</li>
+</ul>
+<h5 id="三方SDK"><a href="#三方SDK" class="headerlink" title="三方SDK"></a>三方SDK</h5><p>例如环信等三方SDK，如果非必要，可以推迟加载的时间</p>
+<h5 id="高频方法"><a href="#高频方法" class="headerlink" title="高频方法"></a>高频方法</h5><p>如果启动过程当中，会调用很多次的方法，例如读取 Info.plist 里面的配置等等，可以加一层内存缓存，这种问题在 TimeProfiler 中	时间段选长可以看出</p>
+<h5 id="锁"><a href="#锁" class="headerlink" title="锁"></a>锁</h5><p>锁之所以会影响启动时间，是因为有时候子线程先持有了锁，<strong>主线程就需要等待子线程锁释放。还要警惕系统会有很多隐藏的全局锁</strong></p>
+<h5 id="线程数量"><a href="#线程数量" class="headerlink" title="线程数量"></a>线程数量</h5><p>线程的数量和优先级都会影响启动时间。可以通过设置 QoS 来配置优先级，两个高优的 QoS 是 User Interactive&#x2F;Initiated，启动的时候，<strong>需要主线程等待的子线程任务都应该设置成高优的</strong>。</p>
+<p><strong>高优的线程数量不应该多于 CPU 核心数量</strong>，可以通过 System Trace 的 System Load 来分析这种情况。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs C++">/GCD<br><span class="hljs-type">dispatch_queue_attr_t</span> attr = <span class="hljs-built_in">dispatch_queue_attr_make_with_qos_class</span>(DISPATCH_QUEUE_SERIAL, QOS_CLASS_UTILITY, <span class="hljs-number">-1</span>);<br><span class="hljs-type">dispatch_queue_t</span> queue = <span class="hljs-built_in">dispatch_queue_create</span>(<span class="hljs-string">&quot;com.custom.utility.queue&quot;</span>, attr);<br><span class="hljs-comment">//NSOperationQueue</span><br>operationQueue.qualityOfService = NSQualityOfServiceUtility<br><br></code></pre></td></tr></table></figure>
+
+
+
+<h5 id="图片"><a href="#图片" class="headerlink" title="图片"></a>图片</h5><p><strong>用 Asset 管理图片而不是直接放在 bundle 里</strong>。Asset 会在编译期做优化，让加载的时候更快，此外在 Asset 中加载图片是要比 Bundle 快的，因为 UIImage imageNamed 要遍历 Bundle 才能找到图。<strong>加载 Asset 中图的耗时主要在在第一次张图，因为要建立索引</strong>，可以通过把启动的图放到一个小的 Asset 里来减少这部分耗时。</p>
+<p> 每次创建 UIImage 都需要 IO，在首帧渲染的时候会解码。所以可以通过提前子线程预加载（创建 UIImage）来优化这部分耗时。<strong>可以在启动的早期开预加载的子线程启动任务</strong>。</p>
+<h5 id="Fishhook"><a href="#Fishhook" class="headerlink" title="Fishhook"></a>Fishhook</h5><p>fishhook 是一个用来 hook C 函数的库，但这个库的第一次调用耗时很高，最好<strong>不要带到线上</strong>。Fishhook 是按照下图的方式遍历 Mach-O 的多个段来找函数指针和函数符号名的映射关系，带来的**副作用就是要大量的 Page In，对于大型 App 来说在 iPhone X 冷启耗时 200ms+**。</p>
+<p> <img src="https://tva1.sinaimg.cn/large/e6c9d24egy1h1v540rn8ij21080arq3p.jpg" srcset="/img/loading.gif" lazyload></p>
+<p>如果不得不用 fishhook，<strong>请在子线程调用，且不要在在<code>_dyld_register_func_for_add_image</code>直接调用 fishhook</strong>。因为这个方法会持有 dyld 的一个全局互斥锁，主线程在启动的时候系统库经常会调用 <code>dlsym</code> 和 <code>dlopen</code>，其内部也需要这个锁，造成上文提到的子线程阻塞主线程。</p>
+<h5 id="段重命名"><a href="#段重命名" class="headerlink" title="段重命名"></a>段重命名</h5><p>因为 iOS13 以下，App Store 会对上传的 App 的 TEXT 段加密，在发生 Page In 的时候会解密，解密的过程是很耗时的，我们可以通过 链接参数将TEXT段中的内容移动到新的段，ld 也有个参数 <code>rename_section</code> 支持重命名</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-string">&quot;-Wl,-rename_section,__TEXT,__cstring,__RODATA,__cstring&quot;</span>,<br><span class="hljs-string">&quot;-Wl,-rename_section,__TEXT,__const,__RODATA,__const&quot;</span>,<br><span class="hljs-string">&quot;-Wl,-rename_section,__TEXT,__gcc_except_tab,__RODATA,__gcc_except_tab&quot;</span>,<br><span class="hljs-string">&quot;-Wl,-rename_section,__TEXT,__objc_methname,__RODATA,__objc_methname&quot;</span>,<br><span class="hljs-string">&quot;-Wl,-rename_section,__TEXT,__objc_classname,__RODATA,__objc_classname&quot;</span>,<br><span class="hljs-string">&quot;-Wl,-rename_section,__TEXT,__objc_methtype,__RODATA,__objc_methtype&quot;</span><br></code></pre></td></tr></table></figure>
+
+<p>这种做法的话，需要注意移动的Text段大小问题</p>
+<h5 id="二进制重排"><a href="#二进制重排" class="headerlink" title="二进制重排"></a>二进制重排</h5><p>以下图为例，方法 1 和方法 3 是启动的时候用到的，为了执行对应的代码，就需要两次 Page In。假如我们把方法 1 和 3 排列到一起，那么只需要一次 Page In，从而提升启动速度。</p>
+<p><img src="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/80b153b8b17848bda954cab6cb9ae93d~tplv-k3u1fbpfcp-zoom-in-crop-mark:1304:0:0:0.awebp" srcset="/img/loading.gif" lazyload alt="img"></p>
+<p>链接器 ld 有个参数-order_file 支持按照符号的方式排列二进制。获取启动时候用到的符号主流有两种方式：</p>
+<ul>
+<li>抖音方案：静态扫描获取 +load 和 C++静态初始化，hook objc_msgSend 获取 Objective C 符号。</li>
+<li>Facebook 方案：LLVM 函数插桩，灰度统计启动路径符号，用大多数用户的符号生成 order_file。</li>
+</ul>
+<h5 id="动态库懒加载"><a href="#动态库懒加载" class="headerlink" title="动态库懒加载"></a>动态库懒加载</h5><p>运行时通过<code>-[NSBundle load]</code>来加载，本质上调用的是底层的 <code>dlopen</code>。</p>
+<p>动态库懒加载除了启动加载的代码减少，还能长期防止业务增加代码引起启动劣化，因为业务的初始化在第一次访问的时候完成的。</p>
+<p>这个方案还有其他优点，比如动态库化后本地编译时间会大幅度降低，对其他性能指标也有好处，缺点是会牺牲一定程度的包大小，但可以用段压缩等方式优化懒加载的动态库来打平这部分损耗。</p>
+<h5 id="Background-Fetch"><a href="#Background-Fetch" class="headerlink" title="Background Fetch"></a>Background Fetch</h5><p>Background Fetch 可以隔一段时间把 App 在后台启动，对于时间敏感的 App（比如新闻）可以在后台刷新数据，这样能够提高 Feed 加载的速度，进而提升用户体验。</p>
+<p>那么，这种类似“后台保活”的机制，为什么能提高启动速度呢？我们来看一个典型的 case：</p>
+<p><img src="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/5fdb6f6a52b146ed868a51824553b681~tplv-k3u1fbpfcp-zoom-in-crop-mark:1304:0:0:0.awebp" srcset="/img/loading.gif" lazyload alt="img"></p>
+<ol>
+<li>系统在后台启动 App</li>
+<li>时间长因为内存等原因，后台的 App 被 kill 了</li>
+<li>这时候用户立刻启动 App，那么这次启动就是一次<strong>热启动</strong>，因为缓存还在</li>
+<li>又一次系统在后台启动 App</li>
+<li>这次用户在 App 在后台的时候点了 App，那么这次启动就是一次<strong>后台回前台</strong>，因为 App 仍然活着</li>
+</ol>
+<p>通过这两个典型的场景，可以看出来为什么 Background Fetch 能提高启动速度了：</p>
+<ul>
+<li><strong>提高热启动在冷启动的占比</strong></li>
+<li><strong>后台启动回前台被定义为启动，因为用户的角度来说这就是一次启动</strong></li>
+</ul>
+<p>后台启动有一些要注意的点，<strong>比如日活，广告，甚至是 AB 进组逻辑都会受影响</strong>，需要做不少适配。往往需要启动器来支撑，因为正常启动在 didFinishLaunch 执行的任务，在后台启动的时候需要延迟到第一次回前台的时候再执行。</p>
+<h3 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h3><p><a target="_blank" rel="noopener" href="https://juejin.cn/post/6921508850684133390">抖音品质建设 - iOS启动优化《实战篇》</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/d9dc0bbc8535">os_signpost</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/ByteDanceTech/article/details/111878196">今日头条优化实践</a></p>
+
+              
+            </div>
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/iOS%E8%BF%9B%E9%98%B6/" class="category-chain-item">iOS进阶</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>iOS-启动优化</div>
+      <div>https://krystal1110.github.io/2022/02/08/iOS-启动优化实践/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>JY</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2022年2月8日</div>
+        </div>
+      
+      
+      <div class="license-meta-item">
+        <div>许可协议</div>
+        <div>
+          
+            
+            
+              <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+              <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                <i class="iconfont icon-by"></i>
+              </span>
+              </a>
+            
+          
+        </div>
+      </div>
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2022/02/10/iOS-ld%E6%AE%B5%E4%BD%8D%E7%A7%BB/" title="iOS-ld段位移">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">iOS-ld段位移</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2022/02/04/iOS-%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B/" title="iOS-启动流程">
+                        <span class="hidden-mobile">iOS-启动流程</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  <article id="comments" lazyload>
+    
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.4.16/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"cgyQocXcH1Lfzt5rxclmf892-gzGzoHsz","appKey":"8u61JSryGOloGGDp4xFV1oaM","path":"window.location.pathname","placeholder":null,"avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
+          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+  </article>
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="leancloud-site-pv-container" style="display: none">
+        总访问量 
+        <span id="leancloud-site-pv"></span>
+         次
+      </span>
+    
+    
+      <span id="leancloud-site-uv-container" style="display: none">
+        总访客数 
+        <span id="leancloud-site-uv"></span>
+         人
+      </span>
+    
+    
+
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+  
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.0/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      headingSelector : CONFIG.toc.headingSelector || 'h1,h2,h3,h4,h5,h6',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      collapseDepth   : CONFIG.toc.collapseDepth || 0,
+      scrollSmooth    : true,
+      headingsOffset  : -boardTop
+    });
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+  });
+</script>
+
+
+  <script>
+  (function() {
+    var enableLang = CONFIG.code_language.enable && CONFIG.code_language.default;
+    var enableCopy = CONFIG.copy_btn;
+    if (!enableLang && !enableCopy) {
+      return;
+    }
+
+    function getBgClass(ele) {
+      return Fluid.utils.getBackgroundLightness(ele) >= 0 ? 'code-widget-light' : 'code-widget-dark';
+    }
+
+    var copyTmpl = '';
+    copyTmpl += '<div class="code-widget">';
+    copyTmpl += 'LANG';
+    copyTmpl += '</div>';
+    jQuery('.markdown-body pre').each(function() {
+      var $pre = jQuery(this);
+      if ($pre.find('code.mermaid').length > 0) {
+        return;
+      }
+      if ($pre.find('span.line').length > 0) {
+        return;
+      }
+
+      var lang = '';
+
+      if (enableLang) {
+        lang = CONFIG.code_language.default;
+        if ($pre[0].children.length > 0 && $pre[0].children[0].classList.length >= 2 && $pre.children().hasClass('hljs')) {
+          lang = $pre[0].children[0].classList[1];
+        } else if ($pre[0].getAttribute('data-language')) {
+          lang = $pre[0].getAttribute('data-language');
+        } else if ($pre.parent().hasClass('sourceCode') && $pre[0].children.length > 0 && $pre[0].children[0].classList.length >= 2) {
+          lang = $pre[0].children[0].classList[1];
+          $pre.parent().addClass('code-wrapper');
+        } else if ($pre.parent().hasClass('markdown-body') && $pre[0].classList.length === 0) {
+          $pre.wrap('<div class="code-wrapper"></div>');
+        }
+        lang = lang.toUpperCase().replace('NONE', CONFIG.code_language.default);
+      }
+      $pre.append(copyTmpl.replace('LANG', lang).replace('code-widget">',
+        getBgClass($pre[0]) + (enableCopy ? ' code-widget copy-btn" data-clipboard-snippet><i class="iconfont icon-copy"></i>' : ' code-widget">')));
+
+      if (enableCopy) {
+        Fluid.utils.createScript('https://lib.baomitu.com/clipboard.js/2.0.10/clipboard.min.js', function() {
+          var clipboard = new window.ClipboardJS('.copy-btn', {
+            target: function(trigger) {
+              var nodes = trigger.parentNode.childNodes;
+              for (var i = 0; i < nodes.length; i++) {
+                if (nodes[i].tagName === 'CODE') {
+                  return nodes[i];
+                }
+              }
+            }
+          });
+          clipboard.on('success', function(e) {
+            e.clearSelection();
+            e.trigger.innerHTML = e.trigger.innerHTML.replace('icon-copy', 'icon-success');
+            setTimeout(function() {
+              e.trigger.innerHTML = e.trigger.innerHTML.replace('icon-success', 'icon-copy');
+            }, 2000);
+          });
+        });
+      }
+    });
+  })();
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="/js/leancloud.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

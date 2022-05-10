@@ -16,22 +16,20 @@
   <meta name="author" content="JY">
   <meta name="keywords" content="">
   
-    <meta name="description" content="在Swift中, SideTable 是针对有需要的对象而创建，系统会为目标对象分配一块新的内存来保存该对象额外的信息。 因为这不是对象必须的内容，所以这个 SideTable 可有可无。对象会有一个指向 SideTable 的指针，同时 SideTable 也有一个指回原对象的指针。在实现上为了不额外多占用内存，目前只有在创建弱引用时，会先把对象的引用计数放到新创建的 SideTable 去，再">
+    <meta name="description" content="__TEXT 段迁移的原理程序的构建过程包含 预处理 -&gt; 编译 -&gt; 汇编 -&gt; 链接 等 4 个主要阶段，完成之后就会得到 Mach-O 可执行文件。 通过 $ man ld ，可以发现链接器有一个参数: -rename_p orgSegment orgSection newSegment newSection。使用该参数可以将orgSegment&#x2F;orgSecti">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Swift-weak的实现">
-<meta property="og:url" content="https://krystal1110.github.io/2021/09/01/Swift-weak%E7%9A%84%E5%AE%9E%E7%8E%B0/index.html">
+<meta property="og:title" content="iOS-ld段位移">
+<meta property="og:url" content="https://krystal1110.github.io/2022/02/10/iOS-ld%E6%AE%B5%E4%BD%8D%E7%A7%BB/index.html">
 <meta property="og:site_name" content="JY">
-<meta property="og:description" content="在Swift中, SideTable 是针对有需要的对象而创建，系统会为目标对象分配一块新的内存来保存该对象额外的信息。 因为这不是对象必须的内容，所以这个 SideTable 可有可无。对象会有一个指向 SideTable 的指针，同时 SideTable 也有一个指回原对象的指针。在实现上为了不额外多占用内存，目前只有在创建弱引用时，会先把对象的引用计数放到新创建的 SideTable 去，再">
+<meta property="og:description" content="__TEXT 段迁移的原理程序的构建过程包含 预处理 -&gt; 编译 -&gt; 汇编 -&gt; 链接 等 4 个主要阶段，完成之后就会得到 Mach-O 可执行文件。 通过 $ man ld ，可以发现链接器有一个参数: -rename_p orgSegment orgSection newSegment newSection。使用该参数可以将orgSegment&#x2F;orgSecti">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://gitee.com/zhangferry/Images/raw/master/iOSWeeklyLearning/20220302155825.png">
-<meta property="article:published_time" content="2021-09-01T10:23:03.000Z">
-<meta property="article:modified_time" content="2021-09-01T10:23:03.000Z">
+<meta property="article:published_time" content="2022-02-10T10:23:03.000Z">
+<meta property="article:modified_time" content="2022-02-10T10:23:03.000Z">
 <meta property="article:author" content="JY">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://gitee.com/zhangferry/Images/raw/master/iOSWeeklyLearning/20220302155825.png">
   
   
-  <title>Swift-weak的实现 - JY</title>
+  <title>iOS-ld段位移 - JY</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -188,7 +186,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="Swift-weak的实现"></span>
+            <span id="subtitle" data-typed-text="iOS-ld段位移"></span>
           
         </div>
 
@@ -199,8 +197,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2021-09-01 18:23" pubdate>
-          2021年9月1日 晚上
+        <time datetime="2022-02-10 18:23" pubdate>
+          2022年2月10日 晚上
         </time>
       </span>
     
@@ -211,7 +209,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          4k 字
+          1.5k 字
         
       </span>
     
@@ -222,7 +220,7 @@
         
         
         
-          34 分钟
+          13 分钟
         
       </span>
     
@@ -268,49 +266,35 @@
         <div id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">Swift-weak的实现</h1>
+            <h1 style="display: none">iOS-ld段位移</h1>
             
             <div class="markdown-body">
               
-              <p>在Swift中, <code>SideTable</code> 是针对有需要的对象而创建，系统会为目标对象分配一块新的内存来保存该对象额外的信息。 因为这不是对象必须的内容，所以这个 <code>SideTable</code> 可有可无。对象会有一个指向 <code>SideTable</code> 的指针，同时 <code>SideTable</code> 也有一个指回原对象的指针。在实现上为了不额外多占用内存，目前只有在创建弱引用时，会先把对象的引用计数放到新创建的 <code>SideTable</code> 去，再把空出来的空间存放 <code>SideTable</code> 的地址，会通过一个标志位来区分对象是否有 <code>SideTable</code>。</p>
-<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs Swift"><span class="hljs-keyword">class</span> <span class="hljs-title class_">JYObject</span>&#123;<br>    <span class="hljs-keyword">var</span> age :<span class="hljs-type">Int</span> <span class="hljs-operator">=</span> <span class="hljs-number">18</span><br>    <span class="hljs-keyword">var</span> name:<span class="hljs-type">String</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;JY&quot;</span><br>&#125;<br> <br>  <span class="hljs-keyword">var</span> t <span class="hljs-operator">=</span> <span class="hljs-type">JYObject</span>()<br>    <br>  <span class="hljs-keyword">weak</span> <span class="hljs-keyword">var</span> t2 <span class="hljs-operator">=</span> t<br>    <br>  <span class="hljs-built_in">print</span>(<span class="hljs-string">&quot;----&quot;</span>)<br></code></pre></td></tr></table></figure>
+              <h3 id="TEXT-段迁移的原理"><a href="#TEXT-段迁移的原理" class="headerlink" title="__TEXT 段迁移的原理"></a>__TEXT 段迁移的原理</h3><p>程序的构建过程包含 预处理 -&gt; 编译 -&gt; 汇编 -&gt; 链接 等 4 个主要阶段，完成之后就会得到 Mach-O 可执行文件。</p>
+<p>通过 $ man ld ，可以发现链接器有一个参数: -rename_p orgSegment orgSection newSegment newSection。使用该参数可以将orgSegment&#x2F;orgSection的名称修改为newSegment&#x2F;newSection。</p>
+<p>可以在 Other Linker Flags 中传递该参数。如：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs C++">-Wl,-rename_p,__TEXT,__text,__BD_TEXT,__text<br>-Wl,-segprot,__BD_TEXT,rx,rx<br></code></pre></td></tr></table></figure>
 
-<p>我们在<code>print</code>处打上断点，查看t2对象</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs C">(lldb) po t2<br>▿ Optional&lt;JYObject&gt;<br>  ▿ some : &lt;JYObject: <span class="hljs-number">0x6000001a9710</span>&gt;<br><br>(lldb) x/<span class="hljs-number">8</span>gx  <span class="hljs-number">0x6000001a9710</span><br><span class="hljs-number">0x6000001a9710</span>: <span class="hljs-number">0x0000000100491e18</span> <span class="hljs-number">0xc0000c00001f03dc</span><br><span class="hljs-number">0x6000001a9720</span>: <span class="hljs-number">0x0000000000000012</span> <span class="hljs-number">0x000000000000594a</span><br><span class="hljs-number">0x6000001a9730</span>: <span class="hljs-number">0xe200000000000000</span> <span class="hljs-number">0x0000000000000000</span><br><span class="hljs-number">0x6000001a9740</span>: <span class="hljs-number">0x00007efd22b59740</span> <span class="hljs-number">0x000000000000009c</span><br>(lldb) <br></code></pre></td></tr></table></figure>
+<p>其中 -Wl 的作用是告诉 Xcode 它后面的参数是添加给 Ld 链接器的，这些参数将在链接阶段生效。</p>
+<p>第一行参数会新创建一个 __BD_TEXT 段，并把<code> __TEXT</code>  ,<code>__text </code>移动到 __<code>BD_TEXT</code>，<code>__text</code>。</p>
+<p>第二行参数是给 <code>__BD_TEXT </code>赋予可读和可执行权限。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-string">&quot;-Wl,-rename_section,__TEXT,__cstring,__RODATA,__cstring&quot;</span>,<br><span class="hljs-string">&quot;-Wl,-rename_section,__TEXT,__const,__RODATA,__const&quot;</span>,<br><span class="hljs-string">&quot;-Wl,-rename_section,__TEXT,__gcc_except_tab,__RODATA,__gcc_except_tab&quot;</span>,<br><span class="hljs-string">&quot;-Wl,-rename_section,__TEXT,__objc_methname,__RODATA,__objc_methname&quot;</span>,<br><span class="hljs-string">&quot;-Wl,-rename_section,__TEXT,__objc_classname,__RODATA,__objc_classname&quot;</span>,<br><span class="hljs-string">&quot;-Wl,-rename_section,__TEXT,__objc_methtype,__RODATA,__objc_methtype&quot;</span><br></code></pre></td></tr></table></figure>
 
 
-
-<p>通过查看汇编，定义了一个<code>weak</code>变量，编译器自动调用了<code>swift_weakInit</code>函数，这个函数是由<code>WeakReference</code>调用的。说明<code>weak</code>字段在编译器声明的过程当中自动生成了<code>WeakReference</code>对象。</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-function">WeakReference *<span class="hljs-title">swift::swift_weakInit</span><span class="hljs-params">(WeakReference *ref, HeapObject *value)</span> </span>&#123;<br>  ref-&gt;<span class="hljs-built_in">nativeInit</span>(value);<br>  <span class="hljs-keyword">return</span> ref;<br>&#125;<br><br> <span class="hljs-function"><span class="hljs-type">void</span> <span class="hljs-title">nativeInit</span><span class="hljs-params">(HeapObject *object)</span> </span>&#123;<br>    <span class="hljs-keyword">auto</span> side = object ? object-&gt;refCounts.formWeakReference() : <span class="hljs-literal">nullptr</span>;<br>    nativeValue.<span class="hljs-built_in">store</span>(<span class="hljs-built_in">WeakReferenceBits</span>(side), std::memory_order_relaxed);<br>  &#125;<br><br><span class="hljs-keyword">template</span> &lt;&gt;<br>HeapObjectSideTableEntry* RefCounts&lt;InlineRefCountBits&gt;::formWeakReference()<br>&#123;<br>    <span class="hljs-comment">// 创建一个 Side Table</span><br>  <span class="hljs-keyword">auto</span> side = <span class="hljs-built_in">allocateSideTable</span>(<span class="hljs-literal">true</span>);<br>  <span class="hljs-keyword">if</span> (side)<br>      <span class="hljs-comment">// 增加一个弱引用</span><br>    <span class="hljs-keyword">return</span> side-&gt;<span class="hljs-built_in">incrementWeak</span>();<br>  <span class="hljs-keyword">else</span><br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">nullptr</span>;<br>&#125;<br></code></pre></td></tr></table></figure>
-
-<p> 我们来看一下<code>allocateSideTable</code>方法，是如何创建一个<code>Side Table</code>的</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-keyword">template</span> &lt;&gt;<br>HeapObjectSideTableEntry* RefCounts&lt;InlineRefCountBits&gt;::<span class="hljs-built_in">allocateSideTable</span>(<span class="hljs-type">bool</span> failIfDeiniting)<br>&#123;<br>  <span class="hljs-comment">//1.拿到原有的引用计数</span><br>  <span class="hljs-keyword">auto</span> oldbits = refCounts.<span class="hljs-built_in">load</span>(SWIFT_MEMORY_ORDER_CONSUME);<br>  <br>  <span class="hljs-comment">// 判断是否有SideTable，</span><br>  <span class="hljs-keyword">if</span> (oldbits.<span class="hljs-built_in">hasSideTable</span>()) &#123;<br>    <span class="hljs-comment">// Already have a side table. Return it.</span><br>    <span class="hljs-keyword">return</span> oldbits.<span class="hljs-built_in">getSideTable</span>();<br>  &#125; <br>  <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (failIfDeiniting &amp;&amp; oldbits.<span class="hljs-built_in">getIsDeiniting</span>()) &#123;<br>    <span class="hljs-comment">// Already past the start of deinit. Do nothing.</span><br>    <span class="hljs-keyword">return</span> <span class="hljs-literal">nullptr</span>;<br>  &#125;<br><br>  <span class="hljs-comment">// Preflight passed. Allocate a side table.</span><br>  <br>  <span class="hljs-comment">// <span class="hljs-doctag">FIXME:</span> custom side table allocator</span><br> <br>  <span class="hljs-comment">//2.通过HeapObject创建了一个HeapObjectSideTableEntry实例对象</span><br>  HeapObjectSideTableEntry *side = <span class="hljs-keyword">new</span> <span class="hljs-built_in">HeapObjectSideTableEntry</span>(<span class="hljs-built_in">getHeapObject</span>());<br> <br>  <span class="hljs-comment">//3.将创建的实例对象地址给了InlineRefCountBits，也就是 RefCountBitsT</span><br>  <span class="hljs-keyword">auto</span> newbits = <span class="hljs-built_in">InlineRefCountBits</span>(side);<br>  <br>  <span class="hljs-keyword">do</span> &#123;<br>    <span class="hljs-keyword">if</span> (oldbits.<span class="hljs-built_in">hasSideTable</span>()) &#123;<br>      <span class="hljs-comment">// Already have a side table. Return it and delete ours.</span><br>      <span class="hljs-comment">// Read before delete to streamline barriers.</span><br>      <span class="hljs-keyword">auto</span> result = oldbits.<span class="hljs-built_in">getSideTable</span>();<br>      <span class="hljs-keyword">delete</span> side;<br>      <span class="hljs-keyword">return</span> result;<br>    &#125;<br>    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (failIfDeiniting &amp;&amp; oldbits.<span class="hljs-built_in">getIsDeiniting</span>()) &#123;<br>      <span class="hljs-comment">// Already past the start of deinit. Do nothing.</span><br>      <span class="hljs-keyword">return</span> <span class="hljs-literal">nullptr</span>;<br>    &#125;<br>     <br>    <span class="hljs-comment">// 将原有的引用计数存储</span><br>    side-&gt;<span class="hljs-built_in">initRefCounts</span>(oldbits);<br>     <br>  &#125; <span class="hljs-keyword">while</span> (! refCounts.<span class="hljs-built_in">compare_exchange_weak</span>(oldbits, newbits,<br>                                             std::memory_order_release,<br>                                             std::memory_order_relaxed));<br>  <span class="hljs-keyword">return</span> side;<br>&#125;<br></code></pre></td></tr></table></figure>
 
 <blockquote>
-<p>总结一下上面所做的事情</p>
-<p>1.拿到原有的引用计数<br>2.通过HeapObject创建了一个HeapObjectSideTableEntry实例对象<br>3.将创建的实例对象地址给了<code>InlineRefCountBits</code>，也就是 RefCountBitsT。</p>
+<p>使用 <code>-rename_p</code> 需要关闭 <code>Bitcode</code> </p>
 </blockquote>
-<p>构造完 <code>Side Table</code> 以后，对象中的 <code>RefCountBitsT</code> 就不是原来的引用计数了，而是一个指向 <code>Side Table</code> 的指针，然而由于它们实际都是 <code>uint64_t</code>，因此需要一个方法来区分。区分的方法我们可以来看 <code>InlineRefCountBits</code> 的构造函数：</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-comment">//弱引用</span><br><span class="hljs-function">LLVM_ATTRIBUTE_ALWAYS_INLINE</span><br><span class="hljs-function">  <span class="hljs-title">RefCountBitsT</span><span class="hljs-params">(HeapObjectSideTableEntry* side)</span></span><br><span class="hljs-function">    : bits((reinterpret_cast&lt;BitsType&gt;(side) &gt;&gt; Offsets::SideTableUnusedLowBits)</span><br><span class="hljs-function">           | (BitsType(<span class="hljs-number">1</span>) &lt;&lt; Offsets::UseSlowRCShift)</span><br><span class="hljs-function">           | (BitsType(<span class="hljs-number">1</span>) &lt;&lt; Offsets::SideTableMarkShift))</span><br><span class="hljs-function">  &#123;</span><br>    <span class="hljs-built_in">assert</span>(refcountIsInline);<br>  &#125;<br></code></pre></td></tr></table></figure>
-
-<blockquote>
-<p>在弱引用方法中把创建出来的地址做了偏移操作然后存放到了内存当中。</p>
-<p><code>SideTableUnusedLowBits</code> &#x3D; 3，所以，在这个过程中，传进来的<code>side</code>往右移了 3 位，下面的两个是 62 位和 63 位标记成 1</p>
-</blockquote>
-<p>我们接着来看一下 <code>HeapObjectSideTableEntry</code> 的结构</p>
-<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs C++"><span class="hljs-keyword">class</span> <span class="hljs-title class_">HeapObjectSideTableEntry</span> &#123;<br>  <span class="hljs-comment">// <span class="hljs-doctag">FIXME:</span> does object need to be atomic?</span><br>  std::atomic&lt;HeapObject*&gt; object;<br>  SideTableRefCounts refCounts;<br><br>  <span class="hljs-keyword">public</span>:<br>  <span class="hljs-built_in">HeapObjectSideTableEntry</span>(HeapObject *newObject)<br>    : <span class="hljs-built_in">object</span>(newObject), <span class="hljs-built_in">refCounts</span>()<br>  &#123; &#125;<br></code></pre></td></tr></table></figure>
+<h3 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h3><h5 id="crash"><a href="#crash" class="headerlink" title="crash"></a>crash</h5><p>Crash 的原因是执行代码时找不到指定的节</p>
+<p>操作系统只关心段的读&#x2F;写&#x2F;执行权限，并不关心段或节的名称。即便是使用了<code>-rename_p</code> 移动 Segment&#x2F;Section，各符号的地址也会由链接器修正好，因此段移动后程序也可以正常运行。</p>
+<p>但是如果代码指明了要读取 __TEXT 中的某个 Section ，那么这个 Section 就不能够被移动，否则代码就无法读取到它，就会导致出错。</p>
+<p>首先，dyld 在启动阶段会检查 <code>__unwind_info</code> 和 <code>__eh_frame</code> 这两个 Section。如果移动这两个 Section，在启动后程序就会 Crash。</p>
+<p>第二，Swift 相关的 Section 不能移动，否则会引起 Crash。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs C++">__TEXT,__swift5_typeref<br>__TEXT,__swift5_reflstr<br>__TEXT,__swift5_fieldmd<br>__TEXT,__swift5_types<br>__TEXT,__swift5_capture<br>__TEXT,__swift5_assocty<br>__TEXT,__swift5_proto<br>__TEXT,__swift5_protos<br>__TEXT,__swift5_builtin<br></code></pre></td></tr></table></figure>
 
 
 
-<p>我们来尝试还原一下 拿到弱引用计数 </p>
-<p><code>0xc0000c00001f03dc</code>62位和63位清0得到 <code>HeapObjectSideTableEntry</code> 实例对象的地址<code>0xC00001F03DC</code></p>
-<p>它既然是右移 3 位，那么我左移 3 位把它还原，<code>HeapObjectSideTableEntry</code>左移三位 得到<code>0x10062AFE0</code></p>
-<p><img src="https://gitee.com/zhangferry/Images/raw/master/iOSWeeklyLearning/20220302155825.png" srcset="/img/loading.gif" lazyload></p>
-<ul>
-<li><code>0x6000001a9710</code> 就是实例对象的地址。</li>
-<li><code>0x0000000000000002</code>就是弱引用计数。<br>这里弱引用为<code>2</code>的原因是因为<code>SideTableRefCountBits</code>初始化的时候从<code>1</code>开始.</li>
-</ul>
-<p> <code>Side Table</code>的生命周期与对象是分离的，当强引用计数为 0 时，只有 <code>HeapObject</code> 被释放了，并没有释放<code>Side Table</code>，只有所有的 <code>weak</code> 引用者都被释放了或相关变量被置 <code>nil</code> 后，<code>Side Table</code> 才能得以释放</p>
+<h5 id="链接失败"><a href="#链接失败" class="headerlink" title="链接失败"></a>链接失败</h5><p><code>__TEXT</code> 段迁移最难解决的问题是链接失败问题，是由 CPU 对寻址范围的限制以及 ld64 链接器的缺陷导致。</p>
 
               
             </div>
@@ -328,7 +312,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/Swift/" class="category-chain-item">Swift</a>
+  <a href="/categories/iOS%E8%BF%9B%E9%98%B6/" class="category-chain-item">iOS进阶</a>
   
   
 
@@ -348,8 +332,8 @@
 
   <div class="license-box my-3">
     <div class="license-title">
-      <div>Swift-weak的实现</div>
-      <div>https://krystal1110.github.io/2021/09/01/Swift-weak的实现/</div>
+      <div>iOS-ld段位移</div>
+      <div>https://krystal1110.github.io/2022/02/10/iOS-ld段位移/</div>
     </div>
     <div class="license-meta">
       
@@ -361,7 +345,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>发布于</div>
-          <div>2021年9月1日</div>
+          <div>2022年2月10日</div>
         </div>
       
       
@@ -391,18 +375,12 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2022/01/01/dyld%202%20%E5%92%8C%20dyld%203%20%E6%9C%89%E5%93%AA%E4%BA%9B%E5%8C%BA%E5%88%AB%20%E4%BB%A5%E5%8F%8AiOS15%E4%B8%8Adyld%E7%9A%84%E5%8F%98%E5%8C%96/" title="dyld 2 和 dyld 3 有哪些区别? 以及iOS15上dyld的变化">
-                        <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">dyld 2 和 dyld 3 有哪些区别? 以及iOS15上dyld的变化</span>
-                        <span class="visible-mobile">上一篇</span>
-                      </a>
-                    
                   </article>
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2021/08/08/iOS-OOM%E5%8E%9F%E7%90%86/" title="iOS-OOM产生的原因">
-                        <span class="hidden-mobile">iOS-OOM产生的原因</span>
+                      <a href="/2022/02/08/iOS-%E5%90%AF%E5%8A%A8%E4%BC%98%E5%8C%96%E5%AE%9E%E8%B7%B5/" title="iOS-启动优化">
+                        <span class="hidden-mobile">iOS-启动优化</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

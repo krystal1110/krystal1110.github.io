@@ -210,6 +210,114 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h1 class="index-header">
         
+        <a href="/2022/02/10/iOS-ld%E6%AE%B5%E4%BD%8D%E7%A7%BB/" target="_self">
+          iOS-ld段位移
+        </a>
+      </h1>
+
+      <a class="index-excerpt" href="/2022/02/10/iOS-ld%E6%AE%B5%E4%BD%8D%E7%A7%BB/" target="_self">
+        <div>
+          
+          __TEXT 段迁移的原理程序的构建过程包含 预处理 -&gt; 编译 -&gt; 汇编 -&gt; 链接 等 4 个主要阶段，完成之后就会得到 Mach-O 可执行文件。 通过 $ man ld ，可以发现链接器有一个参数: -rename_p orgSegment orgSection newSegment newSection。使用该参数可以将orgSegment&#x2F;orgSecti
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2022-02-10 18:23" pubdate>
+              2022-02-10
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/iOS%E8%BF%9B%E9%98%B6/" class="category-chain-item">iOS进阶</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2022/02/08/iOS-%E5%90%AF%E5%8A%A8%E4%BC%98%E5%8C%96%E5%AE%9E%E8%B7%B5/" target="_self">
+          iOS-启动优化
+        </a>
+      </h1>
+
+      <a class="index-excerpt" href="/2022/02/08/iOS-%E5%90%AF%E5%8A%A8%E4%BC%98%E5%8C%96%E5%AE%9E%E8%B7%B5/" target="_self">
+        <div>
+          
+          监控启动埋点启动终点记录方案  iOS 12 及以下：root viewController 的 viewDidAppear iOS 13+：applicationDidBecomeActive  分阶段埋点 +load、initializer的调用顺序和链接顺序有关，链接顺序又是按照 cocopods的 pod 命名升序排列，所以取一个命名为 AAA 开头的 pod ，可以让+load以及 in
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2022-02-08 18:23" pubdate>
+              2022-02-08
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/iOS%E8%BF%9B%E9%98%B6/" class="category-chain-item">iOS进阶</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
         <a href="/2022/02/04/iOS-%E5%90%AF%E5%8A%A8%E6%B5%81%E7%A8%8B/" target="_self">
           iOS-启动流程
         </a>
@@ -426,6 +534,60 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h1 class="index-header">
         
+        <a href="/2021/08/08/iOS-OOM%E5%8E%9F%E7%90%86/" target="_self">
+          iOS-OOM产生的原因
+        </a>
+      </h1>
+
+      <a class="index-excerpt" href="/2021/08/08/iOS-OOM%E5%8E%9F%E7%90%86/" target="_self">
+        <div>
+          
+          什么是OOMout-of-memory 内存超过限制，iOS的Jetsam机制造成的一种Crash，这种另类Crash，通过通过Signal捕获等方法无法捕获 什么又是FOOMForeground-out-of-memory App在前台因消耗内存过多而引起的系统强杀 什么是JetSam机制JetSam机制是操作系统为了控制内存资源过度所建立的一种管理机制，JetSam是一个独立的进程，每一个进程
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2021-08-08 18:23" pubdate>
+              2021-08-08
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/iOS%E8%BF%9B%E9%98%B6/" class="category-chain-item">iOS进阶</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
         <a href="/2021/08/02/iOS-%E7%BC%96%E8%AF%91%E8%BF%87%E7%A8%8B%E6%A2%B3%E7%90%86/" target="_self">
           iOS-编译过程梳理
         </a>
@@ -567,168 +729,6 @@
       <span class="category-chain">
         
   <a href="/categories/iOS%E8%BF%9B%E9%98%B6/" class="category-chain-item">iOS进阶</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2021/07/01/iOS-%E7%B3%BB%E7%BB%9F%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/" target="_self">
-          iOS-系统内存泄露
-        </a>
-      </h1>
-
-      <a class="index-excerpt" href="/2021/07/01/iOS-%E7%B3%BB%E7%BB%9F%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/" target="_self">
-        <div>
-          
-          下面是复现泄漏的测试代码，JYObject是一个没有任何多余代码的类，继承自NSObject。 12345JYObject * jyobject &#x3D; [JYObject new];for(int i &#x3D; 0; i &lt; 10000 * 1000; ++i) &amp;#123;    id value &#x3D; @&quot;JY&quot;;    [jyobject validateValue:&amp;amp
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2021-07-01 18:23" pubdate>
-              2021-07-01
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/iOS%E6%97%A5%E5%B8%B8%E9%97%AE%E9%A2%98/" class="category-chain-item">iOS日常问题</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2021/06/01/iOS-%E9%80%86%E5%90%91%E9%98%B2%E6%8A%A4/" target="_self">
-          iOS-逆向防护
-        </a>
-      </h1>
-
-      <a class="index-excerpt" href="/2021/06/01/iOS-%E9%80%86%E5%90%91%E9%98%B2%E6%8A%A4/" target="_self">
-        <div>
-          
-          **MethodSwizzle ** 利用OC的运行时（Runtime）特性修改 SEL 和 IMP(函数指针) 的关系，打到Hook OC方法的目的 method_exchangeIMP交换两个 IMP class_replaceMethod替换某个 SEL的 IMP （如果没有该方法就添加，相当于换掉这个方法） method_getImplementation 、method_setImpl
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2021-06-01 18:23" pubdate>
-              2021-06-01
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/iOS%E9%80%86%E5%90%91/" class="category-chain-item">iOS逆向</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2021/05/01/%E5%A4%9C%E9%97%B4%E6%A8%A1%E5%BC%8F%E6%A1%86%E6%9E%B6/" target="_self">
-          iOS-夜间模式框架
-        </a>
-      </h1>
-
-      <a class="index-excerpt" href="/2021/05/01/%E5%A4%9C%E9%97%B4%E6%A8%A1%E5%BC%8F%E6%A1%86%E6%9E%B6/" target="_self">
-        <div>
-          
-          iOS夜间模式的适配，主要用到了NSProxy转发原理 ，其中JYDynamicColor继承于UIColor 1234567891011@interface JYDynamicColor : UIColor@property (nonatomic, readonly) UIColor * lightColor;@property (nonatomic, readonly) UIColor * d
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2021-05-01 18:23" pubdate>
-              2021-05-01
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/iOS%E6%BA%90%E7%A0%81/" class="category-chain-item">iOS源码</a>
   
   
 

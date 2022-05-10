@@ -291,8 +291,7 @@
 </ul>
 <h4 id="虚拟内存"><a href="#虚拟内存" class="headerlink" title="虚拟内存"></a>虚拟内存</h4><p>虚拟内存就是一层间接寻址（indirection），虚拟内存解决的是管理所有进程使用物理 RAM 的问题。通过添加间接层来让每个进程使用逻辑地址空间，它可以映射到 RAM 上的某个物理页上。这种映射不是一对一的，逻辑地址可能映射不到 RAM 上，也可能有多个逻辑地址映射到同一个物理 RAM 上。针对第一种情况，当进程要存储逻辑地址内容时会触发 page fault；第二种情况就是多进程共享内存。</p>
 <p>page fault 会阻塞该进程，将磁盘中对应<code>Page</code>的数据加载到内存，把虚拟内存指向物理内存</p>
-<p><strong><font color="#EA7500">对于文件可以不用一次性读入整个文件，可以使用分页映射（<code>mmap()</code>）的方式读取。也就是把文件某个片段映射到进程逻辑内存的某个页上。当某个想要读取的页没有在内存中，就会触发 page fault，内核只会读入那一页，实现文件的懒加载。</font></strong>    </p>
-<p>**<font color="#EA7500">也就是说 Mach-O 文件中的 <code>__TEXT</code> 段可以映射到多个进程，并可以懒加载，且进程之间共享内存。 </font>  **</p>
+<p>**<font color="#EA7500">对于文件可以不用一次性读入整个文件，可以使用分页映射（<code>mmap()</code>）的方式读取。也就是把文件某个片段映射到进程逻辑内存的某个页上。当某个想要读取的页没有在内存中，就会触发 page fault，内核只会读入那一页，实现文件的懒加载。也就是说 Mach-O 文件中的 <code>__TEXT</code> 段可以映射到多个进程，并可以懒加载，且进程之间共享内存。 </font>  **</p>
 <p><strong><font color="#EA7500"><code>__DATA</code> 段是可读写的。 这里使用到了 Copy-On-Write 技术，简称 COW。也就是多个进程共享一页内存空间时，一旦有进程要做写操作，它会先将这页内存内容复制一份出来，然后重新映射逻辑地址到新的 RAM 页上。</font></strong>  </p>
 <p>也就是这个进程自己拥有了那页内存的拷贝。这就涉及到了 clean&#x2F;dirty page 的概念。dirty page 含有进程自己的信息，而 clean page 可以被内核重新生成（重新读磁盘）。所以 dirty page 的代价大于 clean page。</p>
 <p><strong><font color="#EA7500"><code>dirty page</code> ：使用中的物理内存块如果不交换到硬盘保存状态就不能复用，那么就是<code>Dirty</code>的内存块，比如你主动<code>malloc</code>出来的内存块，如果不保留其中的状态就把它给别人用，那你肯定就无法恢复这个内存块的信息，所以它是<code>Dirty</code>的。</font></strong>  </p>
@@ -309,7 +308,8 @@
 <li><strong><font color="#EA7500">对解密后的页，进行签名验证</font></strong></li>
 </ul>
 <p>其中<strong>解密是大头，IO 其次。</strong></p>
-<p>为什么要解密呢？因为 iTunes Connect 会对上传 Mach-O 的 TEXT 段进行加密，防止 IPA 下载下来就直接可以看到代码。这也就是为什么逆向里会有个概念叫做“砸壳”，砸的就是这一层 TEXT 段加密。**<font color="#EA7500">iOS 13 对这个过程进行了优化，Page In 的时候不需要解密了</font>**  </p>
+<p>为什么要解密呢？因为 iTunes Connect 会对上传 Mach-O 的 TEXT 段进行加密，防止 IPA 下载下来就直接可以看到代码。这也就是为什么逆向里会有个概念叫做“砸壳”，砸的就是这一层 TEXT 段加密。</p>
+<p><strong><font color="#EA7500">iOS 13 对这个过程进行了优化，Page In 的时候不需要解密了</font></strong>  </p>
 <h6 id="二进制重排"><a href="#二进制重排" class="headerlink" title="二进制重排"></a>二进制重排</h6><p>启动具有<strong>局部性特征</strong>，即只有少部分函数在启动的时候用到，这些函数在二进制中的分布是零散的，所以 Page In 读入的数据利用率并不高。如果我们可以把启动用到的函数排列到二进制的连续区间，那么就可以减少 Page In 的次数，从而优化启动时间</p>
 <h4 id="IPA的构建"><a href="#IPA的构建" class="headerlink" title="IPA的构建"></a>IPA的构建</h4><p>既然要构建，那么必然会有一些地方去定义如何构建，对应 Xcode 中的两个配置项：</p>
 <p><strong>Build Phase：以 Target 为维度定义了构建的流程</strong>。</p>
@@ -346,7 +346,7 @@
 <li>Debugging Symbols，二方静态库</li>
 </ul>
 <p><strong>为什么二方库在出静态库的时候要选择 Debugging Symbols 呢？是因为像 order_file 等链接期间的优化是基于符号的，如果把符号裁剪掉，那么这些优化也就不会生效了</strong>。</p>
-<h4 id="签名-amp-上传"><a href="#签名-amp-上传" class="headerlink" title="签名 &amp; 上传"></a>签名 &amp; 上传</h4><p>裁剪完二进制后，会和编译好的资源文件一起打包成.app 文件，接着对这个文件进行签名。签名的作用是保证文件内容不多不少，没有被篡改过。接着会把包上传到 iTunes Connect，上传后会对<code>__TEXT</code>段加密，加密会减弱 IPA 的压缩效果，增加包大小，也会降低启动速度 <strong>（iOS 13 优化了加密过程，不会对包大小和启动耗时有影响）</strong>。</p>
+<h4 id="签名-amp-上传"><a href="#签名-amp-上传" class="headerlink" title="签名 &amp; 上传"></a>签名 &amp; 上传</h4><p>裁剪完二进制后，会和编译好的资源文件一起打包成.app 文件，接着对这个文件进行签名。签名的作用是保证文件内容不多不少，没有被篡改过。接着会把包上传到 iTunes Connect，上传后会对<code>__TEXT</code>段加密，加密会减弱 IPA 的压缩效果，增加包大小，也会降低启动速度 <strong>（iOS 13 优化了加密过程，不会对包大小和启动耗时有影响）</strong></p>
 <h3 id="Dyld"><a href="#Dyld" class="headerlink" title="Dyld"></a>Dyld</h3><h4 id="创建启动闭包"><a href="#创建启动闭包" class="headerlink" title="创建启动闭包"></a>创建启动闭包</h4><p>dyld 会首先创建启动闭包，闭包是一个缓存，用来提升启动速度的。既然是缓存，那么必然不是每次启动都创建的，只有在重启手机或者更新&#x2F;下载 App 的第一次启动才会创建。<strong>闭包存储在沙盒的 tmp&#x2F;com.apple.dyld 目录，清理缓存的时候切记不要清理这个目录</strong>。</p>
 <h4 id="闭包做了什么事？"><a href="#闭包做了什么事？" class="headerlink" title="闭包做了什么事？"></a>闭包做了什么事？</h4><ul>
 <li>dependends，依赖动态库列表</li>
@@ -585,6 +585,12 @@
                 <div class="post-prevnext my-3">
                   <article class="post-prev col-6">
                     
+                    
+                      <a href="/2022/02/08/iOS-%E5%90%AF%E5%8A%A8%E4%BC%98%E5%8C%96%E5%AE%9E%E8%B7%B5/" title="iOS-启动优化">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">iOS-启动优化</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
                     
                   </article>
                   <article class="post-next col-6">
