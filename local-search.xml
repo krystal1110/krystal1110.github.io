@@ -194,25 +194,6 @@
   
   
   <entry>
-    <title>iOS-系统内存泄露</title>
-    <link href="/2021/07/01/iOS-%E7%B3%BB%E7%BB%9F%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/"/>
-    <url>/2021/07/01/iOS-%E7%B3%BB%E7%BB%9F%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/</url>
-    
-    <content type="html"><![CDATA[<p>下面是复现泄漏的测试代码，<code>JYObject</code>是一个没有任何多余代码的类，继承自<code>NSObject</code>。</p><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c++">JYObject * jyobject = [JYObject <span class="hljs-keyword">new</span>];<br><span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">10000</span> * <span class="hljs-number">1000</span>; ++i) &#123;<br>    id value = @<span class="hljs-string">&quot;JY&quot;</span>;<br>    [jyobject validateValue:&amp;value forKey:@<span class="hljs-string">&quot;notexistkey&quot;</span> error:nil];<br>&#125;<br></code></pre></td></tr></table></figure><p>当对一个没有实现校验方法的key进行<code>validateValue</code>时，就会有少量内存泄漏。如果执行很多次，结果还是很可观的。上面的代码会让内存飙到160M。</p><h4 id="定位泄漏源"><a href="#定位泄漏源" class="headerlink" title="定位泄漏源"></a>定位泄漏源</h4><p>这个泄漏使用Instruments的Leaks模版可以很快的发现，但是代码却不好定位。下面是Leaks报告的泄漏截图。</p><p><img src="https://tva1.sinaimg.cn/large/e6c9d24egy1h1nksnswpjj20yg06hwf7.jpg"></p><p>可以看出，泄漏发生在<code>validateValue:forKey:error:</code>，再细看右边的调用栈，可以看到这块内存是由<code>malloc</code>分配的。所以很有可能是这个系统方法内部发生了泄漏。</p><p>可以看出，泄漏发生在<code>validateValue:forKey:error:</code>，再细看右边的调用栈，可以看到这块内存是由<code>malloc</code>分配的。所以很有可能是这个系统方法内部发生了泄漏。</p><h4 id="使用符号断点深入观察系统方法"><a href="#使用符号断点深入观察系统方法" class="headerlink" title="使用符号断点深入观察系统方法"></a>使用符号断点深入观察系统方法</h4><p>首先使用符号断点，让程序在<code>validateValue:forKey:error:</code>处停下。</p><p><img src="https://p1-jj.byteimg.com/tos-cn-i-t2oaga2asx/gold-user-assets/2018/4/17/162d197750bcc39e~tplv-t2oaga2asx-zoom-in-crop-mark:1304:0:0:0.awebp" alt="img"></p><p>运行程序，命中断点后，我们就可以观察<code>validateValue:forKey:error:</code>的汇编代码了。</p><p><img src="https://p1-jj.byteimg.com/tos-cn-i-t2oaga2asx/gold-user-assets/2018/4/17/162d197750e0badd~tplv-t2oaga2asx-zoom-in-crop-mark:1304:0:0:0.awebp" alt="img"></p><h4 id="寻找Leak的内存来源"><a href="#寻找Leak的内存来源" class="headerlink" title="寻找Leak的内存来源"></a>寻找Leak的内存来源</h4><p>在汇编代码中，我发现了一个malloc调用和一个free调用。</p><figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs x86asm"><span class="hljs-number">0x1048272ef</span> &lt;+<span class="hljs-number">63</span>&gt;:  callq  <span class="hljs-number">0x10498b1da</span>               <span class="hljs-comment">; symbol stub for: malloc</span><br>...<br><span class="hljs-number">0x104827389</span> &lt;+<span class="hljs-number">217</span>&gt;: callq  <span class="hljs-number">0x10498b066</span>               <span class="hljs-comment">; symbol stub for: free</span><br>复制代码<br></code></pre></td></tr></table></figure><p>通过单步调试发现，malloc出来的内存主要用来存储key，并且把首字母变成大写，应该是为了方便构成<code>validate&lt;Key&gt;:error:</code>的selector name。不过如果对象上没有校验这个key的方法，那么代码会直接jump到free调用的下二行。这样这个内存块就永远不会被释放了。</p><figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">0x104827390</span> &lt;+<span class="hljs-number">224</span>&gt;: movb   $<span class="hljs-number">0</span>x1, %r14b<br></code></pre></td></tr></table></figure><p>当我们给LeakObject加上notexistkey的校验方法后，单步可以发现free被调用。下面是增加的校验方法。</p><figure class="highlight applescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs applescript">- (BOOL)validateNotexistkey:(<span class="hljs-built_in">id</span> *)value <span class="hljs-keyword">error</span>:(NSError **)<span class="hljs-keyword">error</span> &#123;<br><span class="hljs-built_in">    return</span> YES;<br>&#125;<br></code></pre></td></tr></table></figure><h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><p>这次泄漏的寻找过程，大致可以分为</p><ol><li>使用Instruments Leak模版初步定位</li><li>使用符号断点深入泄漏方法，如果泄漏的方法不是系统或者第三方静态（动态）库的方法，就不用这么麻烦了。</li><li>关注泄漏内存块的分配释放方式，在源码或者汇编代码中寻找匹配的内存块。 由于这次泄漏的仅仅是malloc内存块，所以OC的引用计数记录并不能起什么作用。</li></ol>]]></content>
-    
-    
-    <categories>
-      
-      <category>iOS日常问题</category>
-      
-    </categories>
-    
-    
-  </entry>
-  
-  
-  
-  <entry>
     <title>iOS-线程数量监控</title>
     <link href="/2021/07/01/iOS-%E7%BA%BF%E7%A8%8B%E6%95%B0%E9%87%8F%E7%9B%91%E6%8E%A7/"/>
     <url>/2021/07/01/iOS-%E7%BA%BF%E7%A8%8B%E6%95%B0%E9%87%8F%E7%9B%91%E6%8E%A7/</url>
@@ -242,6 +223,25 @@
     <categories>
       
       <category>iOS进阶</category>
+      
+    </categories>
+    
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>iOS-系统内存泄露</title>
+    <link href="/2021/07/01/iOS-%E7%B3%BB%E7%BB%9F%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/"/>
+    <url>/2021/07/01/iOS-%E7%B3%BB%E7%BB%9F%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/</url>
+    
+    <content type="html"><![CDATA[<p>下面是复现泄漏的测试代码，<code>JYObject</code>是一个没有任何多余代码的类，继承自<code>NSObject</code>。</p><figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs c++">JYObject * jyobject = [JYObject <span class="hljs-keyword">new</span>];<br><span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">10000</span> * <span class="hljs-number">1000</span>; ++i) &#123;<br>    id value = @<span class="hljs-string">&quot;JY&quot;</span>;<br>    [jyobject validateValue:&amp;value forKey:@<span class="hljs-string">&quot;notexistkey&quot;</span> error:nil];<br>&#125;<br></code></pre></td></tr></table></figure><p>当对一个没有实现校验方法的key进行<code>validateValue</code>时，就会有少量内存泄漏。如果执行很多次，结果还是很可观的。上面的代码会让内存飙到160M。</p><h4 id="定位泄漏源"><a href="#定位泄漏源" class="headerlink" title="定位泄漏源"></a>定位泄漏源</h4><p>这个泄漏使用Instruments的Leaks模版可以很快的发现，但是代码却不好定位。下面是Leaks报告的泄漏截图。</p><p><img src="https://tva1.sinaimg.cn/large/e6c9d24egy1h1nksnswpjj20yg06hwf7.jpg"></p><p>可以看出，泄漏发生在<code>validateValue:forKey:error:</code>，再细看右边的调用栈，可以看到这块内存是由<code>malloc</code>分配的。所以很有可能是这个系统方法内部发生了泄漏。</p><p>可以看出，泄漏发生在<code>validateValue:forKey:error:</code>，再细看右边的调用栈，可以看到这块内存是由<code>malloc</code>分配的。所以很有可能是这个系统方法内部发生了泄漏。</p><h4 id="使用符号断点深入观察系统方法"><a href="#使用符号断点深入观察系统方法" class="headerlink" title="使用符号断点深入观察系统方法"></a>使用符号断点深入观察系统方法</h4><p>首先使用符号断点，让程序在<code>validateValue:forKey:error:</code>处停下。</p><p><img src="https://p1-jj.byteimg.com/tos-cn-i-t2oaga2asx/gold-user-assets/2018/4/17/162d197750bcc39e~tplv-t2oaga2asx-zoom-in-crop-mark:1304:0:0:0.awebp" alt="img"></p><p>运行程序，命中断点后，我们就可以观察<code>validateValue:forKey:error:</code>的汇编代码了。</p><p><img src="https://p1-jj.byteimg.com/tos-cn-i-t2oaga2asx/gold-user-assets/2018/4/17/162d197750e0badd~tplv-t2oaga2asx-zoom-in-crop-mark:1304:0:0:0.awebp" alt="img"></p><h4 id="寻找Leak的内存来源"><a href="#寻找Leak的内存来源" class="headerlink" title="寻找Leak的内存来源"></a>寻找Leak的内存来源</h4><p>在汇编代码中，我发现了一个malloc调用和一个free调用。</p><figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs x86asm"><span class="hljs-number">0x1048272ef</span> &lt;+<span class="hljs-number">63</span>&gt;:  callq  <span class="hljs-number">0x10498b1da</span>               <span class="hljs-comment">; symbol stub for: malloc</span><br>...<br><span class="hljs-number">0x104827389</span> &lt;+<span class="hljs-number">217</span>&gt;: callq  <span class="hljs-number">0x10498b066</span>               <span class="hljs-comment">; symbol stub for: free</span><br>复制代码<br></code></pre></td></tr></table></figure><p>通过单步调试发现，malloc出来的内存主要用来存储key，并且把首字母变成大写，应该是为了方便构成<code>validate&lt;Key&gt;:error:</code>的selector name。不过如果对象上没有校验这个key的方法，那么代码会直接jump到free调用的下二行。这样这个内存块就永远不会被释放了。</p><figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">0x104827390</span> &lt;+<span class="hljs-number">224</span>&gt;: movb   $<span class="hljs-number">0</span>x1, %r14b<br></code></pre></td></tr></table></figure><p>当我们给LeakObject加上notexistkey的校验方法后，单步可以发现free被调用。下面是增加的校验方法。</p><figure class="highlight applescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs applescript">- (BOOL)validateNotexistkey:(<span class="hljs-built_in">id</span> *)value <span class="hljs-keyword">error</span>:(NSError **)<span class="hljs-keyword">error</span> &#123;<br><span class="hljs-built_in">    return</span> YES;<br>&#125;<br></code></pre></td></tr></table></figure><h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><p>这次泄漏的寻找过程，大致可以分为</p><ol><li>使用Instruments Leak模版初步定位</li><li>使用符号断点深入泄漏方法，如果泄漏的方法不是系统或者第三方静态（动态）库的方法，就不用这么麻烦了。</li><li>关注泄漏内存块的分配释放方式，在源码或者汇编代码中寻找匹配的内存块。 由于这次泄漏的仅仅是malloc内存块，所以OC的引用计数记录并不能起什么作用。</li></ol>]]></content>
+    
+    
+    <categories>
+      
+      <category>iOS日常问题</category>
       
     </categories>
     
