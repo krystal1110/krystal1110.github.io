@@ -211,7 +211,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          4.3k 字
+          4.2k 字
         
       </span>
     
@@ -331,7 +331,7 @@
 <h3 id="如何知道函数中是否调用了某个Class"><a href="#如何知道函数中是否调用了某个Class" class="headerlink" title="如何知道函数中是否调用了某个Class?"></a><strong>如何知道函数中是否调用了某个Class?</strong></h3><p>在二进制文件中，函数都是4个字节的汇编指令内容，所有的指令都是按地址顺序执行，因此函数都是连续的并且无论有多少 <code>if else</code> 多少 <code>return</code> ，函数只存在一个ret指令位于函数指令结尾</p>
 <p>因此当遇到 <code>ret</code> 的时候就可以认为函数结束 </p>
 <font color="#54d530">
-**引用类会将类的地址放入寄存器中，类的地址是 `classref` 中记录的地址，并且，如果类的地址如果低12位为0，则会将类地址一次性放入寄存器。如果低12位不为0，则会先将高位存入寄存器中，再将低12位存入寄存器中，经过运算加法形成真正的地址**</font>
+引用类会将类的地址放入寄存器中，类的地址是 `classref` 中记录的地址，并且，如果类的地址如果低12位为0，则会将类地址一次性放入寄存器。如果低12位不为0，则会先将高位存入寄存器中，再将低12位存入寄存器中，经过运算加法形成真正的地址</font>
 
 <p><img src="https://raw.githubusercontent.com/krystal1110/markdownPic/master/tuchuang20220620140706.png" srcset="/img/loading.gif" lazyload></p>
 <p><strong>在函数范围内，先查看是否直接命中目标函数地址，如果命中则认为类被调用，如果没有直接命中则查看是否先命中高位，再命中低位，如果都命中，则认为类被调用。细心的同学可能会发现，假设存在高位命中了，但是低位被其他地址命中了，则会存在被误报的情况</strong></p>
