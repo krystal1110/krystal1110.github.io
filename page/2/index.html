@@ -210,6 +210,114 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h1 class="index-header">
         
+        <a href="/2021/08/02/iOS-%E7%BC%96%E8%AF%91%E8%BF%87%E7%A8%8B%E6%A2%B3%E7%90%86/" target="_self">
+          iOS-编译过程梳理
+        </a>
+      </h1>
+
+      <a class="index-excerpt" href="/2021/08/02/iOS-%E7%BC%96%E8%AF%91%E8%BF%87%E7%A8%8B%E6%A2%B3%E7%90%86/" target="_self">
+        <div>
+          
+          iOS 编译过程梳理编译语言在执行的时候，必须先通过编译器生成机器码，机器码可以直接在 CPU 上执行，所以执行效率很高。 编译器的概述编译器的作用是把我们的高级语言转换成机器可以识别的机器码，经典的设计结构如下：    前端（Frontend）：语法分析，语义分析和生成中间代码。在这个过程中，也会对代码进行检查，如果发现出错的或需要警告的会标注出来。 优化器（Optimizer）：会进行 Bit
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2021-08-02 18:23" pubdate>
+              2021-08-02
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/iOS%E8%BF%9B%E9%98%B6/" class="category-chain-item">iOS进阶</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2021/07/01/iOS-%E7%B3%BB%E7%BB%9F%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/" target="_self">
+          iOS-系统内存泄露
+        </a>
+      </h1>
+
+      <a class="index-excerpt" href="/2021/07/01/iOS-%E7%B3%BB%E7%BB%9F%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/" target="_self">
+        <div>
+          
+          下面是复现泄漏的测试代码，JYObject是一个没有任何多余代码的类，继承自NSObject。 12345JYObject * jyobject &#x3D; [JYObject new];for(int i &#x3D; 0; i &lt; 10000 * 1000; ++i) &amp;#123;    id value &#x3D; @&quot;JY&quot;;    [jyobject validateValue:&amp;amp
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2021-07-01 18:23" pubdate>
+              2021-07-01
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/iOS%E6%97%A5%E5%B8%B8%E9%97%AE%E9%A2%98/" class="category-chain-item">iOS日常问题</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
         <a href="/2021/07/01/iOS-%E7%BA%BF%E7%A8%8B%E6%95%B0%E9%87%8F%E7%9B%91%E6%8E%A7/" target="_self">
           iOS-线程数量监控
         </a>
@@ -297,60 +405,6 @@
       <span class="category-chain">
         
   <a href="/categories/iOS%E8%BF%9B%E9%98%B6/" class="category-chain-item">iOS进阶</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2021/07/01/iOS-%E7%B3%BB%E7%BB%9F%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/" target="_self">
-          iOS-系统内存泄露
-        </a>
-      </h1>
-
-      <a class="index-excerpt" href="/2021/07/01/iOS-%E7%B3%BB%E7%BB%9F%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/" target="_self">
-        <div>
-          
-          下面是复现泄漏的测试代码，JYObject是一个没有任何多余代码的类，继承自NSObject。 12345JYObject * jyobject &#x3D; [JYObject new];for(int i &#x3D; 0; i &lt; 10000 * 1000; ++i) &amp;#123;    id value &#x3D; @&quot;JY&quot;;    [jyobject validateValue:&amp;amp
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2021-07-01 18:23" pubdate>
-              2021-07-01
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/iOS%E6%97%A5%E5%B8%B8%E9%97%AE%E9%A2%98/" class="category-chain-item">iOS日常问题</a>
   
   
 
@@ -690,65 +744,11 @@
     </article>
   </div>
 
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2020/04/16/iOS%E4%B9%8B%E5%90%8C%E6%AD%A5%E6%96%B9%E6%A1%88%EF%BC%88%E9%94%81%EF%BC%89/" target="_self">
-          iOS-同步方案（锁）
-        </a>
-      </h1>
-
-      <a class="index-excerpt" href="/2020/04/16/iOS%E4%B9%8B%E5%90%8C%E6%AD%A5%E6%96%B9%E6%A1%88%EF%BC%88%E9%94%81%EF%BC%89/" target="_self">
-        <div>
-          
-          近期要写一个多线程工具，把之前学习的多线程，以及线程同步复习一下  多线程的本质：有多条线程，但是只能执行一条，如果间隔时间设置的足够小，就给人的感觉是多条线程是同时进行的，时间片轮转调度算法 iOS中线程同步方案  OSSpinLock os_unfair_lock pthread_mutex dispatch_semaphore Dispatch_queue(DISPATCH_QUEUE_SE
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2020-04-16 18:23" pubdate>
-              2020-04-16
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/iOS/" class="category-chain-item">iOS</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-      </div>
-    </article>
-  </div>
-
 
 
   <nav aria-label="navigation">
     <span class="pagination" id="pagination">
-      <a class="extend prev" rel="prev" href="/"><i class="iconfont icon-arrowleft"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span>
+      <a class="extend prev" rel="prev" href="/"><i class="iconfont icon-arrowleft"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/#board">3</a><a class="extend next" rel="next" href="/page/3/#board"><i class="iconfont icon-arrowright"></i></a>
     </span>
   </nav>
 
