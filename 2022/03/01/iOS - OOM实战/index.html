@@ -1,0 +1,816 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/fluid.png">
+  <link rel="icon" href="/img/fluid.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="JY">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="之前有篇文章介绍过 OOM 的原理，我们都知道，苹果有 Jetsam 机制，我们系统日志当中可以看到 JetsamEvent 开头的日志，这些都是 OOM 问题而上报的 针对于 OOM 的优化，我们能够做什么 图片内存使用优化图片是发生 FOOM 的重灾地，之前遇到一个很有趣的问题，同样一张图片，Native 加载后到直接导致 FOOM 的发生，但是将这样图片放到 WkwebView 当中，则不会">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OOM 实战">
+<meta property="og:url" content="https://krystal1110.github.io/2022/03/01/iOS%20-%20OOM%E5%AE%9E%E6%88%98/index.html">
+<meta property="og:site_name" content="JY">
+<meta property="og:description" content="之前有篇文章介绍过 OOM 的原理，我们都知道，苹果有 Jetsam 机制，我们系统日志当中可以看到 JetsamEvent 开头的日志，这些都是 OOM 问题而上报的 针对于 OOM 的优化，我们能够做什么 图片内存使用优化图片是发生 FOOM 的重灾地，之前遇到一个很有趣的问题，同样一张图片，Native 加载后到直接导致 FOOM 的发生，但是将这样图片放到 WkwebView 当中，则不会">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://krystal1110.github.io/media/16642590300301.jpg">
+<meta property="article:published_time" content="2022-03-01T10:23:03.000Z">
+<meta property="article:modified_time" content="2022-03-01T10:23:03.000Z">
+<meta property="article:author" content="JY">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://krystal1110.github.io/media/16642590300301.jpg">
+  
+  
+  <title>OOM 实战 - JY</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"krystal1110.github.io","root":"/","version":"1.8.14","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":"cgyQocXcH1Lfzt5rxclmf892-gzGzoHsz","app_key":"8u61JSryGOloGGDp4xFV1oaM","server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+
+  
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>JY</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="OOM 实战"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2022-03-01 18:23" pubdate>
+          2022年3月1日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          4.3k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          37 分钟
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="leancloud-page-views"></span> 次
+        </span>
+        
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">OOM 实战</h1>
+            
+            <div class="markdown-body">
+              
+              <p>之前有篇文章介绍过 <code>OOM</code> 的原理，我们都知道，苹果有 <code>Jetsam</code> 机制，我们系统日志当中可以看到 <code>JetsamEvent</code> 开头的日志，这些都是 <code>OOM</code> 问题而上报的</p>
+<p>针对于 <code>OOM</code> 的优化，我们能够做什么</p>
+<h4 id="图片内存使用优化"><a href="#图片内存使用优化" class="headerlink" title="图片内存使用优化"></a>图片内存使用优化</h4><p>图片是发生 <code>FOOM</code> 的重灾地，之前遇到一个很有趣的问题，同样一张图片，<code>Native</code> 加载后到直接导致 <code>FOOM</code> 的发生，但是将这样图片放到 <code>WkwebView</code> 当中，则不会发生 <code>FOOM</code>，有兴趣的可以去看一个 <code>webkit</code> 是如何处理</p>
+<ul>
+<li>使用适当尺寸或分辨率的图片</li>
+<li>及时回收图片</li>
+<li>注意图片缩放方式（ImageIO的模式）</li>
+</ul>
+<h4 id="内存泄露"><a href="#内存泄露" class="headerlink" title="内存泄露"></a>内存泄露</h4><p>内存泄露也是会导致 <code>FOOM</code> 发生的重要原因，我们通常都会对新开发的页面，要求进行内存泄露的检测，开发和 <code>Review</code> 时也应注意是否存在循环引用，<code>CF</code> 类型内存是否释放，<code>UIGraphicsBeginImageContext</code> 和 <code>UIGraphicsEndImageContext</code> 是否成对出现等问题</p>
+<h2 id="OOM的监控"><a href="#OOM的监控" class="headerlink" title="OOM的监控"></a>OOM的监控</h2><h4 id="异常函数的监控"><a href="#异常函数的监控" class="headerlink" title="异常函数的监控"></a>异常函数的监控</h4><p><code>abort()</code> : 立即结束，不做任何操作。</p>
+<p><code>exit()</code> : 释放所有静态全局的对象、缓存，关掉所有的 <code>I/O</code> 通道，然后终止程序。如果有函数通过<code> atexit</code>来注册，还会调用注册的函数，如果 <code>atexit</code> 函数抛出异常就会直接调用 <code>terminate</code></p>
+<p><code>atexit()</code> : 注册程序正常终止时要被调用的函数，一个进程可以登记多达32个函数，这些函数将由<code>exit</code> 自动调用，通常这32个函数被称为终止处理程序，并调用 <code>atexit</code> 函数来登记这些函数。  </p>
+<h4 id="大块内存监控"><a href="#大块内存监控" class="headerlink" title="大块内存监控"></a>大块内存监控</h4><ul>
+<li>获取内存分配详情<ul>
+<li>判断单次内存分配是否超过阈值，若超过阈值，则代表是大内存分配</li>
+</ul>
+</li>
+</ul>
+<p>首先通过重置 <code>libsystem_malloc</code> 库中的 <code>malloc_logger</code> 函数指针获取内存活动详情（分配和释放两种活动），然后通过Type类型过滤出内存分配的活动， 最后获取内存分配大小，该方案可监控 <code>OC</code> 对象和 <code>C/C++</code> 对象，对iOS框架系统没有侵入性<br> <img src="/media/16642590300301.jpg" srcset="/img/loading.gif" lazyload></p>
+<p><code>ibsystem_malloc.dylib</code>  是 <code>iOS</code> 系统虚拟内存管理的核心库之一，任何涉及到 <code>OC、C/C++</code> 对象的内存分配都会调用该库的<code>API</code> ,由它去调用操作系统 <code>Mach</code> 内核提供的接口去分配或释放内存</p>
+<p>具体来说 <code>libsystem_malloc</code> 提供了 <code>malloc_zone_malloc</code> , <code>malloc_zone_calloc</code> , <code>malloc_zone_valloc</code> , <code>malloc_zone_realloc</code> , <code>malloc_zone_free</code> 五个 <code>API</code> 来实现内存分配和释放，在 iOS 系统中所有涉及到的内存活动都会调用如上接口，当我们App进程需要创建新的对象时，如调用 <code>[NSObject alloc]</code>，或释放对象调用 <code>release</code> 方法时（编译器会添加），请求先会走到 <code>libsystem_malloc.dylib</code> 的上述函数。</p>
+<p>在每次调用mach内核函数进行内存分配和释放后都会调用 <code>malloc_logger</code> ,先判断 <code>malloc_logger</code> 函数指针是否为空，如果不为空会调用上述函数，将内存活动的详细信息通过该函数传递进来，</p>
+<p>其中传入进来的信息有 类别，分配内存后的 <code>zone</code> 内存，分配内存的大小，新内存的起始地址指针</p>
+<p><code>malloc_logger</code> 生命为 <code>extern</code> 类型，在 <code>C++</code> 中声明 <code>extern</code> 关键字的全局变量和函数可以使得它们能够跨文件被访问。</p>
+<h4 id="如何重置-malloc-logger"><a href="#如何重置-malloc-logger" class="headerlink" title="如何重置 malloc_logger ?"></a>如何重置 malloc_logger ?</h4><p>定义一个和 <code>malloc_logger</code> 相同的函数，先保存 <code>malloc_logger</code> 函数指针的值到一个临时变量，然后将 <code>malloc_logger</code> 赋值为自定义 我们自定义的函数，然后我们在自定义函数当初，去调用刚刚保存的临时变量，紧接着就是对大内存的监控了</p>
+<p> 通过 <code>type</code> 反解析来获取内存分配，过滤掉内存释放</p>
+<ul>
+<li><code>malloc_zone_malloc</code> 、 <code>malloc_zone_calloc</code>、<code>malloc_zone_valloc</code> 代表内存分配</li>
+<li><code>malloc_zone_realloc</code> 代表内存先释放再分配</li>
+<li><code>malloc_zone_free</code> 代表内存释放</li>
+</ul>
+<hr>
+<ul>
+<li><p>malloc_zone_malloc</p>
+<ul>
+<li><code>MALLOC_LOG_TYPE_ALLOCATE</code> | <code>MALLOC_LOG_TYPE_HAS_ZONE </code></li>
+<li>分配内存给一个对象</li>
+</ul>
+</li>
+<li><p>malloc_zone_calloc </p>
+<ul>
+<li><code>MALLOC_LOG_TYPE_ALLOCATE</code> | <code>MALLOC_LOG_TYPE_HAS_ZONE</code> | <code>MALLOC_LOG_TYPE_CLEARED</code></li>
+<li>分配内存给多个对象</li>
+</ul>
+</li>
+<li><p>malloc_zone_valloc</p>
+<ul>
+<li><code>MALLOC_LOG_TYPE_ALLOCATE</code> | <code>MALLOC_LOG_TYPE_HAS_ZONE</code></li>
+<li>分配内存给一个对象</li>
+</ul>
+</li>
+<li><p>malloc_zone_realloc </p>
+<ul>
+<li><code>MALLOC_LOG_TYPE_ALLOCATE</code> | <code>MALLOC_LOG_TYPE_DEALLOCATE</code> | <code>MALLOC_LOG_TYPE_HAS_ZONE</code></li>
+<li>重新分配内存</li>
+</ul>
+</li>
+<li><p>malloc_zone_free</p>
+<ul>
+<li><code>MALLOC_LOG_TYPE_DEALLOCATE</code> | <code>MALLOC_LOG_TYPE_HAS_ZONE</code></li>
+<li>释放内存</li>
+</ul>
+</li>
+</ul>
+<h4 id="获取单次内存分配是否超过了阈值"><a href="#获取单次内存分配是否超过了阈值" class="headerlink" title="获取单次内存分配是否超过了阈值"></a>获取单次内存分配是否超过了阈值</h4><p><code>malloc_logger</code> 的入参 <code>arg2</code>, <code>arg3</code> 代表内存分配的大小，它也是跟 <code>type</code> 相对应的 </p>
+<ul>
+<li>arg2 <ul>
+<li><code>type</code> 值 <code>malloc_zone_realloc</code> 时为 <code>0</code>，<code>type</code> 值为 <code>malloc_zone_malloc</code> 、<code>malloc_zone_calloc</code> 、<code>malloc_zone_valloc</code> 代表分配内存大小</li>
+</ul>
+</li>
+<li>arg3 <ul>
+<li><code>type</code> 值 <code>malloc_zone_realloc</code> 时代表内存分配大小，<code>type</code>值为 <code>malloc_zone_malloc</code>、<code>malloc_zone_calloc</code>、<code>malloc_zone_valloc</code>为 <code>0</code></li>
+</ul>
+</li>
+</ul>
+<p>接下来判断是否超过我们设定的阈值的大小，在iOS端根据经验单次内次分配 <code>8M</code> 就是普遍认为的大块内存，当然这个值由服务端下发可灵活修改，客户端写个默认值即可</p>
+<h4 id="获取堆栈"><a href="#获取堆栈" class="headerlink" title="获取堆栈"></a>获取堆栈</h4><p>系统方法 <code>backtrace_symbols</code> 可以直接获取堆栈信息，但是耗时严重，而且必须要在获取堆栈信息是当前线程调用，当一些新出的高端机上，深度为20，耗时大概在3ms左右，这个完全可以接受，但是一些低端机型的话，则还是通过恢复函数栈的方式来实现  </p>
+<p>首先 通过 <code>dyld</code> 拿到所有 <code>image</code> ,然后把所有的 <code>image</code> 的起始地址以及结束地址都记录一份</p>
+<p>我们上传的堆栈信息，主要是四部分，第一个是库的名称，其次是堆栈函数地址，第三是动态库的起始地址，第四项是偏移地址（堆栈地址和动态库地址）</p>
+<p>遍历一遍全量库，判断地址是否大于该库起始地址并小于该库的结束地址，那说明该地址就是属于这个库，从而得到该地址的详细信息</p>
+<p>上传后，通过服务端 <code>atos</code> 与 <code>dsym</code> 解析堆栈 </p>
+<h4 id="遇到的问题以及缺点"><a href="#遇到的问题以及缺点" class="headerlink" title="遇到的问题以及缺点"></a>遇到的问题以及缺点</h4><ul>
+<li><p><code>Swift</code> 无法监控 </p>
+</li>
+<li><p>无法监控小内存，例如一段时间内，连续的小内存创建，而引发的<code>OOM</code> </p>
+<ul>
+<li>我们会在5s-8s内，通过 <code>phys_footprint</code> 获取占有内存，会跟上一次的数据做对比，如果发现在某一时间段内，内存占有率升高，会做记录，后面会比对用户的操作路径以及大内存的监控来做联合处理</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p><code>iOS</code> 有 内存压缩 机制，所以实际占用的物理内存会比app分配的内存少，所以用 <code>vm_info</code> 的数据更加准确</p>
+</blockquote>
+<ul>
+<li>对于 <code>dlopen</code> 加载的动态库可以会漏掉<ul>
+<li>可以在获取堆栈之前，进行所有的 <code>image</code> 进行一次遍历，因为大内存的创建并不是非常常见，这点损耗还是可以接受的</li>
+</ul>
+</li>
+</ul>
+<h4 id="检测出来的-OOM"><a href="#检测出来的-OOM" class="headerlink" title="检测出来的 OOM"></a>检测出来的 OOM</h4><ol>
+<li><p>例如某个业务线并发请求了差不多快40张图片的解码，并且依赖了<br> <code>NSOperationQueue</code> 做任务管理和调度，但是并没有设置最大并发数，在某些极端环境下造成内存过高引发了 <code>FOOM</code></p>
+</li>
+<li><p>某个业务线，内容素材是由商家上传的，因为迭代更新，后端遗漏了上传限制，导致商家上传的视频很大，导致 <code>Native</code> 这边图片过大引发的 <code>FOOM</code></p>
+</li>
+<li><p>某个业务线使用了地图，但是地图资源并没有释放掉，但是地图的大内存依旧存在，最后导致 <code>FOOM</code>，我们根据用户使用打点配合大内存的监控，从而排查出 是因为地图 造成的内存泄露 </p>
+</li>
+<li><p>也是由商家自己上传了一个超大的 <code>PDF</code>，<code>Native</code> 这边没有做处理导致了 <code>FOOM</code></p>
+</li>
+</ol>
+<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><p>总结出来最常见的几类触发 <code>OOM</code> 问题的原因，分别是：内存泄露，这个较为常见；第二个是内存堆积，主要指的是 <code>AutoreleasePool</code> 没有及时清理；第三是资源异常，比如加载一张超大图或者一个超大的 <code>PDF</code> 文件；最后一个是内存使用不当，比如内存缓存没有设计淘汰清理的机制。</p>
+<h2 id="🔥-字节-MemoryGraph"><a href="#🔥-字节-MemoryGraph" class="headerlink" title="🔥 字节 MemoryGraph"></a>🔥 字节 MemoryGraph</h2><p>会定时的去检测 <code>App</code> 的物理内存占用，当它超过危险阈值的时候，就会触发内存 dump，此时 SDK 会记录每个内存节点符号化之后的信息，以及他们彼此之间的引用关系，如果能判定出是强引用还是弱引用，也会把这个强弱引用关系同时上报上来，最终这些信息整体上报到后台之后，就可以辅助开发者去分析当时的大内存占用和内存泄露等异常问题。</p>
+<ul>
+<li>虚拟内从节点信息采集</li>
+<li>OC&#x2F;Swift&#x2F;C++ 所有实例及其类名</li>
+<li>内存节点之间的引用关系</li>
+</ul>
+<h4 id="获取所有的-VM-Region-（物理内存使用）"><a href="#获取所有的-VM-Region-（物理内存使用）" class="headerlink" title="获取所有的 VM Region （物理内存使用）"></a>获取所有的 VM Region （物理内存使用）</h4><p> 通过 <code>mach</code> 内核的 <code>vm_region_recurse</code> 函数我们可以拿到所有的 <code>VM Region</code>，并且 通过 <code>vm_region_submap_info_64</code> 结构体获取到：</p>
+<ul>
+<li>虚拟地址空间中的地址和大小。</li>
+<li><code>Dirty</code> 和 <code>Swapped</code> 内存页数，表示该 <code>VM Region</code> 的真实物理内存使用。</li>
+<li>是否可交换，<code>Text</code> 段、共享 <code>mmap</code> 等只读或随时可以被交换出去的内存，无需关注。</li>
+<li><code>user_tag</code>，用户标签，用于提供该 <code>VM Region</code> 的用途的更准确信息</li>
+</ul>
+<hr>
+<h4 id="获取所有的-Malloc-Zone"><a href="#获取所有的-Malloc-Zone" class="headerlink" title="获取所有的 Malloc Zone"></a>获取所有的 Malloc Zone</h4><p>通过 <code>malloc_get_all_zones</code> 获取 <code>libmalloc</code> 内部所有的<code>zone</code> ，并遍历每个 <code>zone</code> 中管理的内存节点，获取 <code>libmalloc</code> 管理的存活的所有内存节点的指针和大小</p>
+<blockquote>
+<p><code>Malloc Zone</code> 分为 <code>Nano</code> 和 <code>Scalable</code> ，<code>Nano</code> 分配16B～256B(16B的整数倍)的内存，<code>Scalable</code> 分配256B以上的大内存</p>
+</blockquote>
+<hr>
+<h4 id="获取每一个-Zone-内所有分配的节点"><a href="#获取每一个-Zone-内所有分配的节点" class="headerlink" title="获取每一个 Zone 内所有分配的节点"></a>获取每一个 Zone 内所有分配的节点</h4><p> 我们可以获取每一个 <code>Zone</code> 内分配的节点，然后获取到 <code>vm_address_t</code> ，紧接着开始判断地址代表什么</p>
+<h4 id="判断内存地址中是什么"><a href="#判断内存地址中是什么" class="headerlink" title="判断内存地址中是什么"></a>判断内存地址中是什么</h4><p> <code>Malloc Zone</code> 分配的内存节点，只有一个地址和大小，需要通过 <code>isa</code> 指针来判断 是不是 <code>oc/swift</code> 对象</p>
+<p> 遇到几个问题现在还没有解答</p>
+<ol>
+<li>不包含 <code>v-table</code> 的 <code>C++</code> 对象如何处理</li>
+<li>上传后的引用关系图分析上如何做的？</li>
+<li>这个方案是 实时抓取 <code>MemoryGrasph</code> 的，那么如何通过指针判断 <code>vm: cgraster</code> 这些对象呢？</li>
+<li><code>vm: cgraster</code> 对象的父引用关系链都可以获取到，如果不通过 <code>hook</code> <code>vm_alloc</code> 这类函数，是如何获取到的？</li>
+</ol>
+
+              
+            </div>
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/iOS%E8%BF%9B%E9%98%B6/" class="category-chain-item">iOS进阶</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+</div>
+
+
+              
+  
+
+
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2022/05/16/SwiftUI%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" title="SwiftUI基础知识">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">SwiftUI基础知识</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2022/02/16/IOS-Router%E6%9E%B6%E6%9E%84%E9%80%89%E6%8B%A9/" title="iOS-Router架构选择">
+                        <span class="hidden-mobile">iOS-Router架构选择</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="leancloud-site-pv-container" style="display: none">
+        总访问量 
+        <span id="leancloud-site-pv"></span>
+         次
+      </span>
+    
+    
+      <span id="leancloud-site-uv-container" style="display: none">
+        总访客数 
+        <span id="leancloud-site-uv"></span>
+         人
+      </span>
+    
+    
+
+  
+</div>
+
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+  
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.0/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      headingSelector : CONFIG.toc.headingSelector || 'h1,h2,h3,h4,h5,h6',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      collapseDepth   : CONFIG.toc.collapseDepth || 0,
+      scrollSmooth    : true,
+      headingsOffset  : -boardTop
+    });
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+  });
+</script>
+
+
+  <script>
+  (function() {
+    var enableLang = CONFIG.code_language.enable && CONFIG.code_language.default;
+    var enableCopy = CONFIG.copy_btn;
+    if (!enableLang && !enableCopy) {
+      return;
+    }
+
+    function getBgClass(ele) {
+      return Fluid.utils.getBackgroundLightness(ele) >= 0 ? 'code-widget-light' : 'code-widget-dark';
+    }
+
+    var copyTmpl = '';
+    copyTmpl += '<div class="code-widget">';
+    copyTmpl += 'LANG';
+    copyTmpl += '</div>';
+    jQuery('.markdown-body pre').each(function() {
+      var $pre = jQuery(this);
+      if ($pre.find('code.mermaid').length > 0) {
+        return;
+      }
+      if ($pre.find('span.line').length > 0) {
+        return;
+      }
+
+      var lang = '';
+
+      if (enableLang) {
+        lang = CONFIG.code_language.default;
+        if ($pre[0].children.length > 0 && $pre[0].children[0].classList.length >= 2 && $pre.children().hasClass('hljs')) {
+          lang = $pre[0].children[0].classList[1];
+        } else if ($pre[0].getAttribute('data-language')) {
+          lang = $pre[0].getAttribute('data-language');
+        } else if ($pre.parent().hasClass('sourceCode') && $pre[0].children.length > 0 && $pre[0].children[0].classList.length >= 2) {
+          lang = $pre[0].children[0].classList[1];
+          $pre.parent().addClass('code-wrapper');
+        } else if ($pre.parent().hasClass('markdown-body') && $pre[0].classList.length === 0) {
+          $pre.wrap('<div class="code-wrapper"></div>');
+        }
+        lang = lang.toUpperCase().replace('NONE', CONFIG.code_language.default);
+      }
+      $pre.append(copyTmpl.replace('LANG', lang).replace('code-widget">',
+        getBgClass($pre[0]) + (enableCopy ? ' code-widget copy-btn" data-clipboard-snippet><i class="iconfont icon-copy"></i>' : ' code-widget">')));
+
+      if (enableCopy) {
+        Fluid.utils.createScript('https://lib.baomitu.com/clipboard.js/2.0.10/clipboard.min.js', function() {
+          var clipboard = new window.ClipboardJS('.copy-btn', {
+            target: function(trigger) {
+              var nodes = trigger.parentNode.childNodes;
+              for (var i = 0; i < nodes.length; i++) {
+                if (nodes[i].tagName === 'CODE') {
+                  return nodes[i];
+                }
+              }
+            }
+          });
+          clipboard.on('success', function(e) {
+            e.clearSelection();
+            e.trigger.innerHTML = e.trigger.innerHTML.replace('icon-copy', 'icon-success');
+            setTimeout(function() {
+              e.trigger.innerHTML = e.trigger.innerHTML.replace('icon-success', 'icon-copy');
+            }, 2000);
+          });
+        });
+      }
+    });
+  })();
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="/js/leancloud.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>

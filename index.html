@@ -318,6 +318,60 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h1 class="index-header">
         
+        <a href="/2022/03/01/iOS%20-%20OOM%E5%AE%9E%E6%88%98/" target="_self">
+          OOM 实战
+        </a>
+      </h1>
+
+      <a class="index-excerpt" href="/2022/03/01/iOS%20-%20OOM%E5%AE%9E%E6%88%98/" target="_self">
+        <div>
+          
+          之前有篇文章介绍过 OOM 的原理，我们都知道，苹果有 Jetsam 机制，我们系统日志当中可以看到 JetsamEvent 开头的日志，这些都是 OOM 问题而上报的 针对于 OOM 的优化，我们能够做什么 图片内存使用优化图片是发生 FOOM 的重灾地，之前遇到一个很有趣的问题，同样一张图片，Native 加载后到直接导致 FOOM 的发生，但是将这样图片放到 WkwebView 当中，则不会
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2022-03-01 18:23" pubdate>
+              2022-03-01
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/iOS%E8%BF%9B%E9%98%B6/" class="category-chain-item">iOS进阶</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
         <a href="/2022/02/16/IOS-Router%E6%9E%B6%E6%9E%84%E9%80%89%E6%8B%A9/" target="_self">
           iOS-Router架构选择
         </a>
@@ -651,60 +705,6 @@
         <div>
           
           在Swift中, SideTable 是针对有需要的对象而创建，系统会为目标对象分配一块新的内存来保存该对象额外的信息。 因为这不是对象必须的内容，所以这个 SideTable 可有可无。对象会有一个指向 SideTable 的指针，同时 SideTable 也有一个指回原对象的指针。在实现上为了不额外多占用内存，目前只有在创建弱引用时，会先把对象的引用计数放到新创建的 SideTable 去，再
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2021-09-01 18:23" pubdate>
-              2021-09-01
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/Swift/" class="category-chain-item">Swift</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2021/09/01/Swift%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84/" target="_self">
-          Swift-对象的内存结构
-        </a>
-      </h1>
-
-      <a class="index-excerpt" href="/2021/09/01/Swift%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84/" target="_self">
-        <div>
-          
-          Swift对象的内存结构Swift对象的内存结构HeapObject，HeapObject (对应OC中的objc_object) ，有两个属性： 一个是 Metadata ，一个是 RefCount ，默认占用 16 字节大小。 1234struct HeapObject &amp;#123;  HeapMetadata const * metadata;  InlineRefCounts refCou
         </div>
       </a>
 

@@ -210,6 +210,60 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h1 class="index-header">
         
+        <a href="/2021/09/01/Swift%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84/" target="_self">
+          Swift-对象的内存结构
+        </a>
+      </h1>
+
+      <a class="index-excerpt" href="/2021/09/01/Swift%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84/" target="_self">
+        <div>
+          
+          Swift对象的内存结构Swift对象的内存结构HeapObject，HeapObject (对应OC中的objc_object) ，有两个属性： 一个是 Metadata ，一个是 RefCount ，默认占用 16 字节大小。 1234struct HeapObject &amp;#123;  HeapMetadata const * metadata;  InlineRefCounts refCou
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2021-09-01 18:23" pubdate>
+              2021-09-01
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Swift/" class="category-chain-item">Swift</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
         <a href="/2021/08/16/Swift%E5%85%B3%E9%94%AE%E5%AD%97/" target="_self">
           Swift关键字
         </a>
@@ -372,60 +426,6 @@
     <article class="col-12 col-md-12 mx-auto index-info">
       <h1 class="index-header">
         
-        <a href="/2021/07/01/iOS-%E7%B3%BB%E7%BB%9F%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/" target="_self">
-          iOS-系统内存泄露
-        </a>
-      </h1>
-
-      <a class="index-excerpt" href="/2021/07/01/iOS-%E7%B3%BB%E7%BB%9F%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/" target="_self">
-        <div>
-          
-          下面是复现泄漏的测试代码，JYObject是一个没有任何多余代码的类，继承自NSObject。 12345JYObject * jyobject &#x3D; [JYObject new];for(int i &#x3D; 0; i &lt; 10000 * 1000; ++i) &amp;#123;    id value &#x3D; @&quot;JY&quot;;    [jyobject validateValue:&amp;amp
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2021-07-01 18:23" pubdate>
-              2021-07-01
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/iOS%E6%97%A5%E5%B8%B8%E9%97%AE%E9%A2%98/" class="category-chain-item">iOS日常问题</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h1 class="index-header">
-        
         <a href="/2021/07/01/iOS-%E7%BA%BF%E7%A8%8B%E6%95%B0%E9%87%8F%E7%9B%91%E6%8E%A7/" target="_self">
           iOS-线程数量监控
         </a>
@@ -459,6 +459,60 @@
       <span class="category-chain">
         
   <a href="/categories/iOS%E6%BA%90%E7%A0%81/" class="category-chain-item">iOS源码</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+          </div>
+        
+        
+      </div>
+    </article>
+  </div>
+
+  <div class="row mx-auto index-card">
+    
+    
+    <article class="col-12 col-md-12 mx-auto index-info">
+      <h1 class="index-header">
+        
+        <a href="/2021/07/01/iOS-%E7%B3%BB%E7%BB%9F%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/" target="_self">
+          iOS-系统内存泄露
+        </a>
+      </h1>
+
+      <a class="index-excerpt" href="/2021/07/01/iOS-%E7%B3%BB%E7%BB%9F%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2/" target="_self">
+        <div>
+          
+          下面是复现泄漏的测试代码，JYObject是一个没有任何多余代码的类，继承自NSObject。 12345JYObject * jyobject &#x3D; [JYObject new];for(int i &#x3D; 0; i &lt; 10000 * 1000; ++i) &amp;#123;    id value &#x3D; @&quot;JY&quot;;    [jyobject validateValue:&amp;amp
+        </div>
+      </a>
+
+      <div class="index-btm post-metas">
+        
+          <div class="post-meta mr-3">
+            <i class="iconfont icon-date"></i>
+            <time datetime="2021-07-01 18:23" pubdate>
+              2021-07-01
+            </time>
+          </div>
+        
+        
+          <div class="post-meta mr-3 d-flex align-items-center">
+            <i class="iconfont icon-category"></i>
+            
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/iOS%E6%97%A5%E5%B8%B8%E9%97%AE%E9%A2%98/" class="category-chain-item">iOS日常问题</a>
   
   
 
@@ -660,60 +714,6 @@
             <i class="iconfont icon-date"></i>
             <time datetime="2021-04-01 18:23" pubdate>
               2021-04-01
-            </time>
-          </div>
-        
-        
-          <div class="post-meta mr-3 d-flex align-items-center">
-            <i class="iconfont icon-category"></i>
-            
-
-<span class="category-chains">
-  
-  
-    
-      <span class="category-chain">
-        
-  <a href="/categories/iOS/" class="category-chain-item">iOS</a>
-  
-  
-
-      </span>
-    
-  
-</span>
-
-          </div>
-        
-        
-      </div>
-    </article>
-  </div>
-
-  <div class="row mx-auto index-card">
-    
-    
-    <article class="col-12 col-md-12 mx-auto index-info">
-      <h1 class="index-header">
-        
-        <a href="/2021/03/01/iOS-Runloop/" target="_self">
-          iOS-Runloop
-        </a>
-      </h1>
-
-      <a class="index-excerpt" href="/2021/03/01/iOS-Runloop/" target="_self">
-        <div>
-          
-          什么是runloop Run loops是线程相关的的基础框架的一部分。一个runloop就是一个事件处理的循环，用来不停的调度工作以及处理输入事件。其实内部就是do－while循环，这个循环内部不断地处理各种任务（比 如Source，Timer，Observer）。使用runloop的目的是让你的线程在有工作的时候忙于工作，而没工作的时候处于休眠状态。  runloop和线程的关系 线程和 Ru
-        </div>
-      </a>
-
-      <div class="index-btm post-metas">
-        
-          <div class="post-meta mr-3">
-            <i class="iconfont icon-date"></i>
-            <time datetime="2021-03-01 18:23" pubdate>
-              2021-03-01
             </time>
           </div>
         
