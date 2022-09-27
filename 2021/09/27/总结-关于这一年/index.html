@@ -16,20 +16,20 @@
   <meta name="author" content="JY">
   <meta name="keywords" content="">
   
-    <meta name="description" content="BeeHive原理：BeeHive的模块都必须实现一个继承自BHServiceProtocol的唯一自定义协议，此协议中定义自己想要公开的方法，是用来给其他模块调用使用的。 每个模块的自定义协议可以统一放在一个pod中，以中介者模式解决网状依赖的问题。而且该pod只会被具体的模块依赖，并不会依赖具体的模块。完全符合面向对象的依赖倒置原则——抽象不应该依赖于具体实现，具体实现应该依赖于抽象。 优点：">
+    <meta name="description" content="总结毕业来微盟也有一年多了，在这一年多的时间内，学到了很多东西，2022年9月26日，中午吃完了团队老大的散伙饭，回到公司，就得到通知，下午交接完，开始休假，然后商量赔偿的事情  这也是意料当中的事，今年一整年都围绕着这股气氛，从4月再到6月再到现在9月底，每一批都裁了不少人，从最早不赚钱的业务线，然后再到边缘业务，现在基础技术也基本上不存在了，虽然心里有预期，也有赔偿，但是心里总归还是有一点不舒">
 <meta property="og:type" content="article">
-<meta property="og:title" content="iOS-Router架构选择">
-<meta property="og:url" content="https://krystal1110.github.io/2022/02/16/IOS-Router%E6%9E%B6%E6%9E%84%E9%80%89%E6%8B%A9/index.html">
+<meta property="og:title" content="JY">
+<meta property="og:url" content="https://krystal1110.github.io/2021/09/27/%E6%80%BB%E7%BB%93-%E5%85%B3%E4%BA%8E%E8%BF%99%E4%B8%80%E5%B9%B4/index.html">
 <meta property="og:site_name" content="JY">
-<meta property="og:description" content="BeeHive原理：BeeHive的模块都必须实现一个继承自BHServiceProtocol的唯一自定义协议，此协议中定义自己想要公开的方法，是用来给其他模块调用使用的。 每个模块的自定义协议可以统一放在一个pod中，以中介者模式解决网状依赖的问题。而且该pod只会被具体的模块依赖，并不会依赖具体的模块。完全符合面向对象的依赖倒置原则——抽象不应该依赖于具体实现，具体实现应该依赖于抽象。 优点：">
+<meta property="og:description" content="总结毕业来微盟也有一年多了，在这一年多的时间内，学到了很多东西，2022年9月26日，中午吃完了团队老大的散伙饭，回到公司，就得到通知，下午交接完，开始休假，然后商量赔偿的事情  这也是意料当中的事，今年一整年都围绕着这股气氛，从4月再到6月再到现在9月底，每一批都裁了不少人，从最早不赚钱的业务线，然后再到边缘业务，现在基础技术也基本上不存在了，虽然心里有预期，也有赔偿，但是心里总归还是有一点不舒">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2022-02-16T10:23:03.000Z">
-<meta property="article:modified_time" content="2022-02-16T10:23:03.000Z">
+<meta property="article:published_time" content="2021-09-27T02:30:03.000Z">
+<meta property="article:modified_time" content="2021-09-27T02:30:03.000Z">
 <meta property="article:author" content="JY">
 <meta name="twitter:card" content="summary_large_image">
   
   
-  <title>iOS-Router架构选择 - JY</title>
+  <title>JY</title>
 
   <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
 
@@ -186,7 +186,7 @@
       <div class="banner-text text-center fade-in-up">
         <div class="h2">
           
-            <span id="subtitle" data-typed-text="iOS-Router架构选择"></span>
+            <span id="subtitle" data-typed-text=""></span>
           
         </div>
 
@@ -197,8 +197,8 @@
     
       <span class="post-meta">
         <i class="iconfont icon-date-fill" aria-hidden="true"></i>
-        <time datetime="2022-02-16 18:23" pubdate>
-          2022年2月16日 晚上
+        <time datetime="2021-09-27 10:30" pubdate>
+          2021年9月27日 上午
         </time>
       </span>
     
@@ -209,7 +209,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          991 字
+          1k 字
         
       </span>
     
@@ -266,40 +266,21 @@
         <div id="board">
           <article class="post-content mx-auto">
             <!-- SEO header -->
-            <h1 style="display: none">iOS-Router架构选择</h1>
+            <h1 style="display: none"></h1>
             
             <div class="markdown-body">
               
-              <h3 id="BeeHive"><a href="#BeeHive" class="headerlink" title="BeeHive"></a>BeeHive</h3><h5 id="原理："><a href="#原理：" class="headerlink" title="原理："></a>原理：</h5><p>BeeHive的模块都必须实现一个继承自BHServiceProtocol的唯一自定义协议，此协议中定义自己想要公开的方法，是用来给其他模块调用使用的。</p>
-<p>每个模块的自定义协议可以统一放在一个pod中，以中介者模式解决网状依赖的问题。而且该pod只会被具体的模块依赖，并不会依赖具体的模块。完全符合面向对象的依赖倒置原则——抽象不应该依赖于具体实现，具体实现应该依赖于抽象。</p>
-<h5 id="优点："><a href="#优点：" class="headerlink" title="优点："></a>优点：</h5><ul>
-<li>模块不存在或未注册时，不会获取到实例，可以灵活处理；</li>
-</ul>
-<h5 id="缺点："><a href="#缺点：" class="headerlink" title="缺点："></a>缺点：</h5><ul>
-<li>有基础协议，存在代码侵入，但其中并未封装通用性的协议方法；</li>
-<li>BHServiceManager注册时通过协议识别模块，因此每个模块必须定义自己的协议；</li>
-<li>通过配置文件注册时，未提供属性注入；</li>
-<li>因为模块通过BeeHive统一注册后创建，所以Service之间的依赖，可能导致Service在注册前使用；因而需要控制Service的加载顺序；</li>
-<li>会影响启动速度，在 <code>+load</code> 方法中注册了1000个 <code>Service Protocol</code>，启动时间影响大概是在3-4ms</li>
-</ul>
-<hr>
-<h3 id="CTMediator"><a href="#CTMediator" class="headerlink" title="CTMediator"></a>CTMediator</h3><p>CTMediator的方案中，每个模块需要定义自己的Target对象，作为公共方法声明，其中定义的Action都是给其他模块调用使用的。</p>
-<p>为了解决网状依赖的问题，可以为每个模块定义一个CTMediator的category对Target进行二次封装，这些category放在统一的pod中，作为一个中介者。按正常的逻辑，这个统一pod是会依赖具体的模块的，但是CTMediator的方案中，是利用runtime调用对应的Target-Action，所以解除了直接的代码依赖。</p>
-<h5 id="优点：-1"><a href="#优点：-1" class="headerlink" title="优点："></a>优点：</h5><ul>
-<li>Target无基础类型，所以无侵入性；</li>
-<li>模块不需注册;</li>
-<li>两层封装，保证灵活性；</li>
-<li>和应用间的Route跳转可以更灵活的对接；</li>
-</ul>
-<h5 id="缺点：-1"><a href="#缺点：-1" class="headerlink" title="缺点："></a>缺点：</h5><ul>
-<li>Target无基础类型，缺乏抽象，模块需要自己实现Target-Action;</li>
-<li>当模块不存在时，无法提前处理，只能设置默认处理方法；</li>
-<li>category中都是硬编码，修改时会比较麻烦。</li>
-</ul>
-<hr>
-<h3 id="为什么不直接使用业界的-CTMediator-或者-Beehive-或者-MGJRouter"><a href="#为什么不直接使用业界的-CTMediator-或者-Beehive-或者-MGJRouter" class="headerlink" title="为什么不直接使用业界的 CTMediator 或者 Beehive 或者 MGJRouter?"></a>为什么不直接使用业界的 CTMediator 或者 Beehive 或者 MGJRouter?</h3><ul>
-<li>是我们的需求和业界的开源库不完全相符。MGJRouter 缺少服务管理，CTMediator 和设计不符，Beehive 没有路由管理同时不够轻量(很多接口还是基于阿里的需求提供的，我们用不到，会形成理解成本)。</li>
-</ul>
+              <h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><h4 id="毕业"><a href="#毕业" class="headerlink" title="毕业"></a>毕业</h4><p>来微盟也有一年多了，在这一年多的时间内，学到了很多东西，2022年9月26日，中午吃完了团队老大的散伙饭，回到公司，就得到通知，下午交接完，开始休假，然后商量赔偿的事情 </p>
+<p>这也是意料当中的事，今年一整年都围绕着这股气氛，从4月再到6月再到现在9月底，每一批都裁了不少人，从最早不赚钱的业务线，然后再到边缘业务，现在基础技术也基本上不存在了，虽然心里有预期，也有赔偿，但是心里总归还是有一点不舒服的（人生第一次毕业~ O(∩_∩)O ~）</p>
+<p>之前的同事也有被 <code>hr</code> 背绩效，然后签 <code>pip</code> 绩效改进协议，等于是默认没有年终，逼你自己走，<code>hr</code> 给我的理由是 无关绩效，团队现在更注重业务开发，不太需要基础技术了，虽然我现在也兼职写着业务，随着大批量的离职，业务需求也降低了，所以有了这次的毕业</p>
+<p>休假大概会到29号了，之前家里有事情，请了不少假，不然还能白嫖一个国庆，赔偿也是 <code>n+1</code>, 满半年算一年，反之则算半年，这算是互联网的标配了吧</p>
+<h4 id="摸鱼周报"><a href="#摸鱼周报" class="headerlink" title="摸鱼周报"></a>摸鱼周报</h4><p>这一年确实收货了很多，加入了摸鱼周报的联合编辑，定时定点督促自己学习新知识，也结识了很多大佬，星神，飞哥，竹立，晨光等等，都是周报的小伙伴，经常会像他们请教问题，感谢他们的帮助</p>
+<h4 id="小伙伴们"><a href="#小伙伴们" class="headerlink" title="小伙伴们"></a>小伙伴们</h4><p>在 <code>wm</code> 也认识了很多关系不错的大佬，轩哥，张总，罗总，猫咪，飞飞，闲暇之余还会一起约饭，讨论技术，虽然在我毕业之前，他们就都已经毕业了，现在只剩下罗总孤军奋战，感谢他们工作上给予的帮助</p>
+<h4 id="学会交流沟通"><a href="#学会交流沟通" class="headerlink" title="学会交流沟通"></a>学会交流沟通</h4><p>一直觉得自己的iOS 技术落后业界水平，从字节分享的很多文章可以发现，我们的确距离他们差距很大，由此会产生焦虑</p>
+<p>焦虑并不一定是个贬义词，关键在于我们是否能积极应对。今年认识了很多非常优秀的人，这里绝大部分人都是 iOS 领域中的佼佼者</p>
+<p>在遇到比自己强的人时，一定要敢说敢问，我觉得说这个问题一定要重视，可能你自己觉得理解了，但是你说出来，别人会有不一样的看法，以及在说的过程中，你会发现某些点，理解得并不是很透彻，至于问，一定要有不要脸的精神，不怕自己的问题太过于简历，或者观点不符合主流而不敢发声，往往问了之后才能更深刻的理解，要学会与强者为伍，遇强则强</p>
+<h4 id="打算"><a href="#打算" class="headerlink" title="打算"></a>打算</h4><p>接下来打算好好放松放松，总结一下，自己做的项目，工具以及知识点，复习一下八股之类的，之前写了很多笔记文章，由于没有时间都没有上传到 <code>blogs</code> 上，趁现在有时间，整理过后都会发到 <code>blogs</code> 上</p>
+<p>2022年，对于互联网来说是寒冷的一年，但是我还是觉得，不管如何，我们都应该抱有希望，努力提升自己的实力才是硬道理 ~</p>
 
               
             </div>
@@ -317,7 +298,7 @@
     
       <span class="category-chain">
         
-  <a href="/categories/iOS%E8%BF%9B%E9%98%B6/" class="category-chain-item">iOS进阶</a>
+  <a href="/categories/%E6%80%BB%E7%BB%93/" class="category-chain-item">总结</a>
   
   
 
@@ -344,9 +325,9 @@
                   <article class="post-prev col-6">
                     
                     
-                      <a href="/2022/05/16/SwiftUI%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" title="SwiftUI基础知识">
+                      <a href="/2022/01/01/dyld%202%20%E5%92%8C%20dyld%203%20%E6%9C%89%E5%93%AA%E4%BA%9B%E5%8C%BA%E5%88%AB%20%E4%BB%A5%E5%8F%8AiOS15%E4%B8%8Adyld%E7%9A%84%E5%8F%98%E5%8C%96/" title="dyld 2 和 dyld 3 有哪些区别? 以及iOS15上dyld的变化">
                         <i class="iconfont icon-arrowleft"></i>
-                        <span class="hidden-mobile">SwiftUI基础知识</span>
+                        <span class="hidden-mobile">dyld 2 和 dyld 3 有哪些区别? 以及iOS15上dyld的变化</span>
                         <span class="visible-mobile">上一篇</span>
                       </a>
                     
@@ -354,8 +335,8 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2022/02/10/iOS-ld%E6%AE%B5%E4%BD%8D%E7%A7%BB/" title="iOS-ld段位移">
-                        <span class="hidden-mobile">iOS-ld段位移</span>
+                      <a href="/2021/09/01/Swift-weak%E7%9A%84%E5%AE%9E%E7%8E%B0/" title="Swift-weak的实现">
+                        <span class="hidden-mobile">Swift-weak的实现</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>
