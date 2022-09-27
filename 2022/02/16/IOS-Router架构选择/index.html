@@ -16,12 +16,12 @@
   <meta name="author" content="JY">
   <meta name="keywords" content="">
   
-    <meta name="description" content="BeeHive原理：BeeHive的模块都必须实现一个继承自BHServiceProtocol的唯一自定义协议，此协议中定义自己想要公开的方法，是用来给其他模块调用使用的。 每个模块的自定义协议可以统一放在一个pod中，以中介者模式解决网状依赖的问题。而且该pod只会被具体的模块依赖，并不会依赖具体的模块。完全符合面向对象的依赖倒置原则——抽象不应该依赖于具体实现，具体实现应该依赖于抽象。 优点：">
+    <meta name="description" content="Here&#39;s something encrypted, password is required to continue reading.">
 <meta property="og:type" content="article">
 <meta property="og:title" content="iOS-Router架构选择">
 <meta property="og:url" content="https://krystal1110.github.io/2022/02/16/IOS-Router%E6%9E%B6%E6%9E%84%E9%80%89%E6%8B%A9/index.html">
 <meta property="og:site_name" content="JY">
-<meta property="og:description" content="BeeHive原理：BeeHive的模块都必须实现一个继承自BHServiceProtocol的唯一自定义协议，此协议中定义自己想要公开的方法，是用来给其他模块调用使用的。 每个模块的自定义协议可以统一放在一个pod中，以中介者模式解决网状依赖的问题。而且该pod只会被具体的模块依赖，并不会依赖具体的模块。完全符合面向对象的依赖倒置原则——抽象不应该依赖于具体实现，具体实现应该依赖于抽象。 优点：">
+<meta property="og:description" content="Here&#39;s something encrypted, password is required to continue reading.">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-02-16T10:23:03.000Z">
 <meta property="article:modified_time" content="2022-02-16T10:23:03.000Z">
@@ -270,37 +270,18 @@
             
             <div class="markdown-body">
               
-              <h3 id="BeeHive"><a href="#BeeHive" class="headerlink" title="BeeHive"></a>BeeHive</h3><h5 id="原理："><a href="#原理：" class="headerlink" title="原理："></a>原理：</h5><p>BeeHive的模块都必须实现一个继承自BHServiceProtocol的唯一自定义协议，此协议中定义自己想要公开的方法，是用来给其他模块调用使用的。</p>
-<p>每个模块的自定义协议可以统一放在一个pod中，以中介者模式解决网状依赖的问题。而且该pod只会被具体的模块依赖，并不会依赖具体的模块。完全符合面向对象的依赖倒置原则——抽象不应该依赖于具体实现，具体实现应该依赖于抽象。</p>
-<h5 id="优点："><a href="#优点：" class="headerlink" title="优点："></a>优点：</h5><ul>
-<li>模块不存在或未注册时，不会获取到实例，可以灵活处理；</li>
-</ul>
-<h5 id="缺点："><a href="#缺点：" class="headerlink" title="缺点："></a>缺点：</h5><ul>
-<li>有基础协议，存在代码侵入，但其中并未封装通用性的协议方法；</li>
-<li>BHServiceManager注册时通过协议识别模块，因此每个模块必须定义自己的协议；</li>
-<li>通过配置文件注册时，未提供属性注入；</li>
-<li>因为模块通过BeeHive统一注册后创建，所以Service之间的依赖，可能导致Service在注册前使用；因而需要控制Service的加载顺序；</li>
-<li>会影响启动速度，在 <code>+load</code> 方法中注册了1000个 <code>Service Protocol</code>，启动时间影响大概是在3-4ms</li>
-</ul>
-<hr>
-<h3 id="CTMediator"><a href="#CTMediator" class="headerlink" title="CTMediator"></a>CTMediator</h3><p>CTMediator的方案中，每个模块需要定义自己的Target对象，作为公共方法声明，其中定义的Action都是给其他模块调用使用的。</p>
-<p>为了解决网状依赖的问题，可以为每个模块定义一个CTMediator的category对Target进行二次封装，这些category放在统一的pod中，作为一个中介者。按正常的逻辑，这个统一pod是会依赖具体的模块的，但是CTMediator的方案中，是利用runtime调用对应的Target-Action，所以解除了直接的代码依赖。</p>
-<h5 id="优点：-1"><a href="#优点：-1" class="headerlink" title="优点："></a>优点：</h5><ul>
-<li>Target无基础类型，所以无侵入性；</li>
-<li>模块不需注册;</li>
-<li>两层封装，保证灵活性；</li>
-<li>和应用间的Route跳转可以更灵活的对接；</li>
-</ul>
-<h5 id="缺点：-1"><a href="#缺点：-1" class="headerlink" title="缺点："></a>缺点：</h5><ul>
-<li>Target无基础类型，缺乏抽象，模块需要自己实现Target-Action;</li>
-<li>当模块不存在时，无法提前处理，只能设置默认处理方法；</li>
-<li>category中都是硬编码，修改时会比较麻烦。</li>
-</ul>
-<hr>
-<h3 id="为什么不直接使用业界的-CTMediator-或者-Beehive-或者-MGJRouter"><a href="#为什么不直接使用业界的-CTMediator-或者-Beehive-或者-MGJRouter" class="headerlink" title="为什么不直接使用业界的 CTMediator 或者 Beehive 或者 MGJRouter?"></a>为什么不直接使用业界的 CTMediator 或者 Beehive 或者 MGJRouter?</h3><ul>
-<li>是我们的需求和业界的开源库不完全相符。MGJRouter 缺少服务管理，CTMediator 和设计不符，Beehive 没有路由管理同时不够轻量(很多接口还是基于阿里的需求提供的，我们用不到，会形成理解成本)。</li>
-</ul>
-
+              <div class="hbe hbe-container" id="hexo-blog-encrypt" data-wpm="Oh, this is an invalid password. Check and try again, please." data-whm="OOPS, these decrypted content may changed, but you can still have a look.">
+  <script id="hbeData" type="hbeData" data-hmacdigest="50a9d6b6103030d7174351571cb6320a7ce8ddc147156e3494cfb23038c1a9cf">30b1ea5aa7108d130862beaedfecbfe153ff63c4b10e9547f907ccac0b01bb559f071db3cff7df306e191c2035e75a21143c719ed1c252878635ca8967048cd77ab3dce5d0489db9cdeb5b88b5a754e693672ea7dfc7b8b49fa5dc4bcdd62d22e66fc38a7652a57496fe15820b29c8b611cf0fa0113b4f7c2ce6813c98862157a464b987822c100e6127d139482b0e787ba3b1d0b9980de3e1b192acdec4f919361880d6c3bb08466b71adfb8de6618f11e06240b01d9922ec1d3c6911a2277b6fb50d85ab0302d93d1d787be2f43af8aa2ad3e08dc189bb2ca287ffea1ec9cac19a8741fadedce83a92bbe6e04f5f1663f9a76fa1664e2f97fe426b469a2963e8a577258bc97fff1738742b7dd400a8ea489ef211cefc7525e92c6baf2ffe2604ce106152e59cae575bc1da4f0a55a690a5242281a6034f4f7ad58b32456c8b3a5f12f001a2a48d530823772798eb85be757e8cac5626bb9bc3c4e03ed63d295c95a1e92e7e54d7f7a7e454680ef3350bfa55e6d310c0ed8c4c67caaad23515d758bd99e615c8f4a91b756c43d6762888a76a4690e2cf9a280a39f7999a894ac1c4317665ebb25e4a4b2f0295b8f72686c03b0bb4d3d394a8a4520c789938c0fd9f9300237a44345e5c2b04c9be7ec570df6fcd5d061d070605236f8cb2456b65c162ced9ff58fa97d010aaf99909fa8ed76682c7a9a43559e235e43b9953c8a72c26d075a8849d85bd4d9110ac0da62789fce3e4acc0b53c1235f88dc900c2cdc555d7bb4edb609f0d73b18873bda848e6fd561310ec6029cb944244e8a4d58ad30f342e72ec7872b50beb22f32523c0f0459045e2c2476f389f24703e8f4178cf1d5beb58571f77e8fc2de102459641532f7d1d6fe8dd3fa928ad56ef7e27406f3c93459859f69c7b536b2113c0f30f8a3cb17f6a4c6ce8a469a71a20a6a4ccf3f7f97a480621179bf49b5742a4ecb3f6eb0160c80c5eb929e9ab62ef6baf96e0d8be3a85f09005cb3c93dfb217e663de54a1a6becfc06ca57d64aa1ea0ba6eeb0c7b57e02410674ade13075399937da9e6529ccdd138e4a6f604d9b6450222b64053926b665c6c5d2558abf44692285e72efcab3d13382a03ece666a44e61ff14c6b5dad10faea8aadea548a344959237527eb514ee5042d55eed6b4970d2942d39b45d1f7c77b8b0928631cb22f1c0bdf54a6f7ce4b09d759c308824e6b3f2e791c76a8d4c5a12abe5c4d04d24abc13c897df8270d86030e27f05213e67245a93358afbf8692b53e316e2bbe381d81e022ec66215357fbd934a937ef3623d53d66d33bb95afba2adc86587198ebe173a62ca7e1869f5c2c2710a442d5606822b9b7432a4b303caecc879727615e181b79e60451738dc854ff9105c8c4577ed2bda0d9c988a60a7f64792cc44e2fedb8a8576a67d9900e5a0d7a791d3e6e8cb220da8a9cc9fb5d2c2e0a8d7387d4331b40a5db92613d67d7770c4ace7a57c8a829e2876c7208199987d04c1d3fb711b9d3d4f5c381869715a29de2876f81531709039362b9b38b0c1d748d39338108752423cdf58d42c5353576767c58ff9e3a6103c83750d577ca3f13cf392a5321d9f17d08035a843717da1a4b0d11b65f655febc842e3d03005c982547904634608ef971f6ce5eb9896c4e52bbd1d1807ff34244456384d873185cc744546541a1f5d6717dfabafccdae39f9b01d616af5cb243dfb3322487044ea4a600fde1466d836f078d32a9bcac8249a9311745b43f8e27bbc3181b8487fd115dbdee9f399af8329df40b01925d10c6b72a89b87b4e374e9a2790a50c16796993167429c3d591228604d424ed8d9067fe92a5363eeab3167ac548aeb47d7a40bc2fe1521bc0ca5d7c308a063955642765c4fedc05853a41460b256e5b4189a89b91d84c5b5a1dd1510427c55d12ccaac75cae47838638c115ec2bb99fc360d59de490630cb751ef289b015f05592a5cf68de3e34efa93aa2bfc8376ffd62c3278b8333b35df615a4612e741fd2994f32275b3a2a519c8a84745698fd2ca5ea30d7cde1da84fbdd8671553bdbfa7484d11440ab0183ec9d54f39c6bdcaee394d4647d539873c9d14f58525ca8c2c55f2808dba096641182a69f87632fb2a0f06e80c8d10cfc8c0aa3f5e29a4ee1831990a2a76cc3830c28688eca193c0f4efff409a2d54490ae90bc77bad55ed119adca5ddcaf92b477a1caf413f18dacf3891fbd33552f524dcca513970c99d01f6067b9e325938ed86eb8fee4a43af76f413255f23a5089e17819e266bff8464a771020693a43cf3971cef547e4e8b1eae271244ca36894d615f910f2c5a3bf95c6840138f0c552e39b738d6b3c00d6da2f928022e431d2b11337ad3541049f4b24c19c2d1b5711fa0a474c0ee2f2058721d1f33ba793f7c066db1011e62caac8f8137058783cf9fb5a6ad2ee845d5c379fc071d2ba32a8da0c1eff6ef61d5febde1fc5aea5abe417421c4fba817ad5710294f4d6b974637a5fc4053741624895cacabbc0beec2100d6fd68680a064dc1e6296ceee72aa23cf14cab13007cdaa7d15b20df17327a5e6fc9f14357833a854126db7bf94aa0c5de124443c0ea35d1b2a9e6a8c780a0d90eab9be0c5249bec745e53c80d8adf37772fae20af9473046b1188e00ecccea86b9825dcc9d1b4ee070a30d9d1f5c4f3e132ad69370739b89ad3b02936528234060c3f7f305758f3d15edbc5480e7cddc44725674da99feec93a81516567aab91ad114f1926225165a5850c991a61e1ef66b51fa52dc3211f926cd238bd7e1a303ad7232e482e9d5a256a9c3fc3b6b826c298b7d77797fae1ec6292566e54f8037f703aee66b9f9cfc07857abb891abaea1f4975dddd0667c4f4060fbc3602517da5ed4648d3e767eba90efa83fe065d4ffdb5cfe8f709b27f3f9b9b06deb1d1a3a62b007afd432052feecbd4a688d08349af15c44d79188d19dbbe2f8334cc69e9dff935bf3e84d36c57d7b105dabde06c6032ab7e8edbf7b5cacb1b41275065424664d7cc39eb25c14bd5352c025d62e497aa2e07f9ce345cbb1b6e71d84d0fa84390eb2037dd40b668d506a35fca28d527f8fa7ed487857cd56cee37631e656d912732dd428ebe2e60629ad25777eb3f713fe53a08c6791c7d3677609aa6ee7c4bb02cf112420a5efd5e48b29dc7ae4dba391b1f02feb0438006e7de723d5b2eb5c973b39f5b56f9bb18530ff424bf0e99aca502fc5b2319f3b017564e9013265f96a6248bc197c9952209d903cf3e038fd03c84929d2f8dbea3d51807e63b40a2c1a91527dacabb30b623536d227cb2ebbc11f52e405aa2a5dd74bbf8c0f2a413d2a686044bf83bb4649f95f76e5b911a830b65d57509e86dbc910b78e7f87dd150f147c779e125ef0e6cfa58be94ec81697696c9e5369222cfd7847cb0961087ee9d392bc188e51360f870d1c043cefb521f7cf90bb0f626c91971f40ef87d0980209f11780366d283ea0054849ce97923d7ceff2b1a8df582adb199f8b2e3a074a4d8d9c1a2074354e062322e8ba2c0fd87dcd4fa7d560c0b456e68a52628a4327b00a96320edbc7e28d7649a7812a32bca1a063c6ca63454c7236bca11e3ead4c860c47002cea520b64050b83bfce92b2a9ca63991eae5e5979f6da1fdb41d7c920fd8671d407f8d4017ac1f2480911886c586cf9992473b8a094d40df6853a7c26babaf6305529fe7da6500a0d3b254e2c2eabbbde76087c59a3e1d736472c22c31f55fce241a103f3deb55d6dea0668ebf0f46302ca0983158a4b44a8ccc19707843c21f5fcd770ec064789e869171810ff8b2b5ed3cc7609b13fbe83e50f75b86473ff68bd02b505bc2a1b2c28310318c91ec5e1400e904a2bc4177626c04004b83a5c793332c8bc2d26f91ec4f0907728fe8f6c253ae24f287f846a2fae68b35f5cb01482a1d1ba8a0fe0e3e1ce81b0d8784f121c4c017a99e33a4a076abe46118c861a48b7a80e997d499de84f4c8ea7c658450d6f6753fb8395d948a46d048722eda7c11667c3628f316ff53a5bf2fcbc475edbc3bbaeb1f970f1d984bac6235296ab9b7904162b3f92ec13b17db528eaffb2c7a604581834e22ac05cf22eef64cf87b8ec537516a1f2dd52cb0cb7f54356578055958c0d1c0990798e55916ff2e999d9d12ebe7dac67b033e0a4ccb1ab70770e7ff36736bd001e18de0879d666b423b10b41e8b3fb1b38639574822ff7aff21ecbc33b2cdf776a0523b9b365f2053ead74743f3e5cad938310f48204af4ae7ec7c4b92e126a2c63ad2141fd198738bac967546babd9bd3b57f9297d8e7d7ce93119591e08810301f55d2982b4eddcd79f345f8339fe47e163c79c35801b74d001c8831733fb352ef0f92ec47100dee9b9427b3c666c255e82d45f2f4762061605650c465b7da65f206e88d16de5370a3a251d3e10ea01793cb4fd277a3fb89fbc872c3ce873149ee1a27b4f2ea103f9eb93fb9270c2747f9d9131ac4d7e0f50663febcb12b024fe116ef49516837a910ffcb2967a0bffacfa6262e8f72f20414bfd9fcf0bac77180a9ef023e23d11029d5e0ba247130d2465ec517a410d50abec75d80651dee2b99b3934a212a70cc74c2263528721925cf7319c72a16fbcee62c4f085aeb6e6a184add2b1ae09f81b6a3c49347ab5668897fc3fb52bcfa1ed873ee6f3401b64fa72b1bafc8c3cfce5eff4b757397fed02d63595c69f27bfc71f608ff71099a1dd4e254cf9747e45d25e0c81f3ccf2ae5b51a4feea86c3b42720d1383aee1bb07bebfe9f3c972c9693dfea76173668e58bb33a3dff68db81f127ccfdabaddaa9eba999499a6dceb50d1d6d70564d78ee2cb255a292088b292e691791b62b028b1545e698e86c2ed0fbbf5012d746fdc6d411db5b5a3a038303851c8994be4d92346f50b7ccfc81bb8247deb504f019c2097cd9edbefdd170f913ed5a18268b1942186e53a7f475dffaab167f7361b3dc4928dd3a71fb0dd226f13c149a4285992979252db05059a4fe9ab3c170</script>
+  <div class="hbe hbe-content">
+    <div class="hbe hbe-input hbe-input-default">
+      <input class="hbe hbe-input-field hbe-input-field-default" type="password" id="hbePass">
+      <label class="hbe hbe-input-label hbe-input-label-default" for="hbePass">
+        <span class="hbe hbe-input-label-content hbe-input-label-content-default">Hey, password is required here.</span>
+      </label>
+    </div>
+  </div>
+</div>
+<script data-pjax src="/lib/hbe.js"></script><link href="/css/hbe.style.css" rel="stylesheet" type="text/css">
               
             </div>
             <hr/>
